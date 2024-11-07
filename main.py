@@ -31,18 +31,18 @@ from common.io.FileManagerClient import search_files
 
 # The name of current active addon to be created, tested or released
 # 要创建、测试或发布的当前活动插件的名称
-ACTIVE_ADDON = "sample_addon"
+ACTIVE_ADDON = "HiLoTools"
 
 # The path of the blender executable. Blender2.93 is the minimum version required
 # Blender可执行文件的路径，Blender2.93是所需的最低版本
-BLENDER_EXE_PATH = "C:/software/general/Blender/Blender3.5/blender.exe"
+BLENDER_EXE_PATH = "D:\\Steam\\steamapps\\common\\Blender\\blender.exe"
 
 # The path of the blender addon folder
 # Blender插件文件夹的路径
 BLENDER_ADDON_PATH = default_blender_addon_path(BLENDER_EXE_PATH)
 # You can override the default path by setting the path manually
 # 您可以通过手动设置路径来覆盖默认插件安装路径
-# BLENDER_ADDON_PATH = "C:/software/general/Blender/Blender3.5/3.5/scripts/addons/"
+# BLENDER_ADDON_PATH = "C:\\Users\\MirageTank\\AppData\\Roaming\\Blender Foundation\\Blender\\4.0\\scripts\\addons"
 
 # The files to be ignored when release the addon
 
