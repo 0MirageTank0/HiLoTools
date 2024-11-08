@@ -8,7 +8,7 @@ from typing import List
 from addons.HiLoTools.utils.properties_update_utils import update_background_color, update_high_model_color, \
     update_low_model_color, update_display_mode, \
     update_select_group_index
-from addons.HiLoTools.utils.material_utils import apply_material_to_object
+from addons.HiLoTools.utils.material_utils import apply_material_to_object, clear_material
 
 
 def mesh_object_poll(_, obj: Object):
@@ -20,38 +20,42 @@ class ObjectSubItem(bpy.types.PropertyGroup):
 
 
 # 定义一个类来存储多对一的物体组
-
-
 class ObjectGroup(bpy.types.PropertyGroup):
     def update_active_object(self, context: Context):
         scene = context.scene
         object_groups: List[ObjectGroup] = scene.object_groups
         scene.active_all = False
-        # 如果所有选择都为空，则默认全选
+        # 如果所有is_active都为False，则默认全选
         if not any(obj.is_active for obj in object_groups):
             scene.active_all = True
-        update_material: bool = scene.display_mode == "transparent"
-        for group in object_groups:
-            active = group.is_active
-            if group.low_model:
-                if active or scene.active_all:
-                    group.low_model.hide_select = False
-                    # if update_material:
-                    apply_material_to_object(group.low_model, scene.low_model_material)
-                else:
-                    group.low_model.hide_select = True
-                    if update_material:
-                        apply_material_to_object(group.low_model, scene.background_material)
-            for item in group.high_models:
-                if item.high_model:
-                    if active or scene.active_all:
-                        item.high_model.hide_select = False
-                        # if update_material:
-                        apply_material_to_object(item.high_model, scene.high_model_material)
-                    else:
+        if scene.display_mode != "transparent" or not scene.background_material:
+            # 如果背景材质为空，则不处理
+            return
+
+        # 对所有物体设置背景材质
+        if scene.transparent_ungrouped:
+            for obj in scene.objects:
+                obj.hide_select = True
+                apply_material_to_object(self.low_model, scene.background_material)
+        # 如果当前被取消active，则设置为背景材质
+        if not (self.is_active or scene.active_all):
+            # 如果已经对所有物体进行了设置背景材质，则无需再次设置
+            if not scene.transparent_ungrouped:
+                if self.low_model:
+                    self.low_model.hide_select = True
+                    apply_material_to_object(self.low_model, scene.background_material)
+                for item in self.high_models:
+                    if item.high_model:
                         item.high_model.hide_select = True
-                        if update_material:
-                            apply_material_to_object(item.high_model, scene.background_material)
+                        apply_material_to_object(item.high_model, scene.background_material)
+        else:  # 否则 清除材质
+            if self.low_model:
+                self.low_model.hide_select = False
+                clear_material(self.low_model)
+            for item in self.high_models:
+                if item.high_model:
+                    item.high_model.hide_select = False
+                    clear_material(item.high_model)
 
     def update_visible_object(self, context: Context):
         high_models = self.high_models
@@ -70,6 +74,9 @@ class ObjectGroup(bpy.types.PropertyGroup):
                 # del self._previous_low_model["group"]
         if self.low_model:
             self.low_model.group_info = self.uuid
+            # 如果此时高模预选框里面保存有此时的低模，则清除他
+            if context.scene.selected_high_model == self.low_model:
+                context.scene.selected_high_model = None
             # self.low_model["group"] = self
         self.previous_low_model = self.low_model
 
@@ -98,6 +105,7 @@ addon_properties = {
                                          ("transparent", "半透其他", "将无关组透明")
                                      ],
                                      update=update_display_mode),
+        "transparent_ungrouped": BoolProperty(name="影响组外物体",description="半透将同样影响不属于任何组的物体"),
         "active_all": BoolProperty(name="全部使能", default=True),
         "low_suffix": StringProperty(name="低模后缀", default="_low"),
         "high_suffix": StringProperty(name="高模后缀", default="_high"),

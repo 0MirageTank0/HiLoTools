@@ -20,6 +20,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import threading
 import time
 from datetime import datetime
@@ -116,6 +117,7 @@ from bpy.app.handlers import persistent
 import os
 import sys
 existing_addon_md5 = ""
+
 try:
     bpy.ops.preferences.addon_enable(module="{addon_name}")
 except Exception as e:
@@ -143,6 +145,8 @@ def watch_update_tick():
             existing_addon_md5 = addon_md5
             print("Addon updated")
     return 1.0
+
+
 
 @persistent
 def register_watch_update_tick(dummy):
@@ -193,6 +197,7 @@ def start_test(init_file, addon_name, enable_watch=True):
         subprocess.call([BLENDER_EXE_PATH, "--python-expr", python_script])
     finally:
         exit_handler()
+
 
 
 def release_addon(target_init_file, addon_name, with_timestamp=False, release_dir=DEFAULT_RELEASE_DIR, need_zip=True):

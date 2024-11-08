@@ -40,13 +40,11 @@ class OBJECT_OT_switch_group_selection(Operator):
 
         bpy.ops.object.select_all(action='DESELECT')
 
-        global display_text
-
         if self.selection == 'HIGH MODEL' or self.selection == 'ALL':
             for item in object_groups.high_models:
                 if item.high_model:
                     item.high_model.select_set(True)
-                    bpy.context.view_layer.objects.active = item.high_model
+                    context.view_layer.objects.active = item.high_model
 
         if self.selection == 'LOW MODEL' or self.selection == 'ALL':
             if object_groups.low_model:
@@ -55,6 +53,7 @@ class OBJECT_OT_switch_group_selection(Operator):
 
         if self.update_select_index:
             scene.object_groups_index = target_index
+
         return {"FINISHED"}
 
 
@@ -126,16 +125,12 @@ class OBJECT_OT_select_object(Operator):
         # 获取指定名称的物体
         obj = bpy.data.objects.get(self.object_name)
         if obj:
-            # 确保物体在当前场景中
             if obj.users_scene and obj.users_scene[0] == context.scene:
-                # 取消选择所有物体
                 bpy.ops.object.select_all(action='DESELECT')
-                # 选择指定的物体
                 obj.select_set(True)
-                # 设置活动物体
                 context.view_layer.objects.active = obj
             else:
-                self.report({'WARNING'}, f"物体 {self.object_name} 不在当前场景中")
+                self.report({'WARNING'}, f"{self.object_name} 物体存在，但 不在当前场景中")
         else:
             self.report({'WARNING'}, f"未找到物体 {self.object_name}")
         return {'FINISHED'}

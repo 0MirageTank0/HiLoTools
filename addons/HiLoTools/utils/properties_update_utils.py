@@ -27,6 +27,7 @@ def update_select_group_index(self, context: Context):
     object_groups: [] = scene.object_groups
     index = scene.object_groups_index
 
+    scene.selected_high_model = None
     bpy.ops.object.select_all(action='DESELECT')
 
     if context.space_data.local_view:

@@ -20,6 +20,10 @@ fontId = 0
 gpuShader = gpu.shader.from_builtin('UNIFORM_COLOR')
 text_location_in_3d: Vector
 credible_location: bool = False
+display_text = ""
+color = (1, 1, 1, 1)
+display_second_text = ""
+second_color = (1, 1, 1, 1)
 
 
 def draw_rect(pos1, pos2, col):
@@ -30,7 +34,7 @@ def draw_rect(pos1, pos2, col):
     gpu_extras.batch.batch_for_shader(gpuShader, type='TRI_FAN', content={'pos': vpos}).draw(gpuShader)
 
 
-def draw_textbox(fontid, text, second_text, center, margin, bg_color, ):
+def draw_textbox(fontid, text, second_text, center, margin, bg_color):
     txt_w, txt_h = blf.dimensions(fontid, text)
     box_w = txt_w + 2 * margin
     box_h = txt_h + 2 * margin
@@ -45,9 +49,11 @@ def draw_textbox(fontid, text, second_text, center, margin, bg_color, ):
     )
     # Text
     blf.position(fontid, cx - txt_w / 2, cy - txt_h / 2, 0)
+    blf.color(fontid, color[0], color[1], color[2], color[3])
     blf.draw(fontid, text)
     if second_text:
         blf.size(fontid, 20)
+        blf.color(fontid, second_color[0], second_color[1], second_color[2], second_color[3])
         txt_w, txt_h = blf.dimensions(fontid, second_text)
         cy = center[1] - (txt_h + margin)
         box_w = txt_w + 2 * margin
@@ -61,23 +67,22 @@ def draw_textbox(fontid, text, second_text, center, margin, bg_color, ):
         blf.draw(fontid, second_text)
 
 
-def draw_callback_px(display_text, display_second_text):
+def draw_callback_px(self, context):
     """绘制文字提示的回调函数"""
     if show_text:
-        global credible_location, text_location_in_3d
-        if not credible_location:
-            text_location_in_3d = get_selected_objects_centroid(bpy.context)
+        global credible_location, text_location_in_3d, display_text, display_second_text
+        if not credible_location or not text_location_in_3d:
+            text_location_in_3d = get_selected_objects_centroid(context)
             credible_location = True
         pos = text_location_in_3d
         if pos is None:
             return
-        true_text_position = calculate_text_position(bpy.context, pos)
+        true_text_position = calculate_text_position(context, pos)
 
         # 设置文字大小和颜色
         blf.size(fontId, 28)
         blf.shadow_offset(fontId, 1, -1)
         blf.shadow(fontId, 5, .1, .1, .1, 1)
-        blf.color(fontId, .9, .9, 1, 1)
 
         draw_textbox(
             fontid=fontId,
@@ -155,20 +160,25 @@ def calculate_text_position(context: Context, obj_location):
     return coord_2d
 
 
-def show_text_on_object(display_text, display_second_text):
+def show_text_on_object(text, second_text, text_color=(.9, .9, 1, 1), second_text_color=(.9, .9, 1, 1)):
     """在所选物体的质心位置显示文字提示"""
     global show_text, start_time, text_position, handler, credible_location
     obj = bpy.context.object
     if obj:
         start_time = time.time()
+        global display_text, display_second_text, color, second_color
+        display_text = text
+        color = text_color
+        display_second_text = second_text
+        second_color = second_text_color
+        credible_location = False
         if show_text:
             return
         # 开始显示文字
         show_text = True
-        credible_location = False
+
         # 添加绘制回调
-        handler = bpy.types.SpaceView3D.draw_handler_add(draw_callback_px, (display_text, display_second_text),
-                                                         'WINDOW', 'POST_PIXEL')
+        handler = bpy.types.SpaceView3D.draw_handler_add(draw_callback_px, (None, bpy.context), 'WINDOW', 'POST_PIXEL')
 
         # 设置定时器
         bpy.app.timers.register(remove_text, first_interval=text_display_time)
@@ -183,7 +193,8 @@ def remove_text(force=False):
         show_text = False
         credible_location = False
         # 移除绘制回调
-        bpy.types.SpaceView3D.draw_handler_remove(handler, 'WINDOW')
-        handler = None
+        if handler:
+            bpy.types.SpaceView3D.draw_handler_remove(handler, 'WINDOW')
+            handler = None
         return None  # 停止定时器
     return 0.1  # 持续调用直到时间结束

@@ -5,7 +5,7 @@ from typing import Optional, Tuple
 from addons.HiLoTools.properties.AddonProperties import ObjectGroup
 
 
-def get_group_entry(uuid) -> Tuple[ObjectGroup, int]:
+def get_group_entry(uuid) -> Tuple[Optional[ObjectGroup], int]:
     # entry : ObjectGroup
     for (index, entry) in enumerate(bpy.context.scene.object_groups):
         if entry.uuid == uuid:

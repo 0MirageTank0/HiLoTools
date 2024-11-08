@@ -16,6 +16,7 @@ class VIEW3D_PT_ObjectGroupsPanel(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = '物体组管理'
+    bl_order = 0
     bl_options = {"HEADER_LAYOUT_EXPAND"}
 
     def draw(self, context: Context):
@@ -60,6 +61,22 @@ class VIEW3D_PT_ObjectGroupsPanel(bpy.types.Panel):
                 box.prop(obj_group, "low_model", text="低模物体")
                 if not obj_group.low_model:
                     box.operator(OBJECT_OT_generate_low_poly_object.bl_idname, text="生成低模物体")
+                if len(obj_group.high_models) <= 1:
+                    box = col.box()
+                    box.label(text="高模物体:", icon='SHADING_RENDERED')
+                    if len(obj_group.high_models) == 1:
+                        row = box.row(align=True)
+                        first_high_model = obj_group.high_models[0]
+                        if first_high_model.high_model:
+                            row.operator(OBJECT_OT_select_object.bl_idname, text=first_high_model.high_model.name,
+                                         icon='HIDE_OFF', translate=False).object_name = first_high_model.high_model.name
+                        else:
+                            row.label(text="缺失物体", icon='ERROR')
+                        row.operator(OBJECT_OT_remove_object_from_group.bl_idname, text="", icon='X').index = 0
+                        box.separator()
+                    box.prop(scene, "selected_high_model", text="新高模")
+                    box.operator(OBJECT_OT_add_object_to_group.bl_idname, text="添加")
+
         else:
             # 显示物体组列表
             col = layout.column()
@@ -84,14 +101,21 @@ class VIEW3D_PT_HighListPanel(bpy.types.Panel):
     bl_category = "物体组管理"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
-    bl_options = {"DEFAULT_CLOSED"}
+    bl_options = {"HEADER_LAYOUT_EXPAND"}
 
     @classmethod
     def poll(cls, context: Context):
         scene = context.scene
         if context.mode != 'OBJECT':
             return False
-        return 0 <= scene.object_groups_index < len(scene.object_groups)
+        if len(scene.object_groups) and 0 <= scene.object_groups_index < len(scene.object_groups):
+            obj_group: ObjectGroup = scene.object_groups[scene.object_groups_index]
+            if len(obj_group.high_models) <= 1:
+                return False
+            else:
+                return True
+        else:
+            return False
 
     def draw(self, context: Context):
         scene = context.scene

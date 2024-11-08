@@ -17,6 +17,7 @@ class OBJECT_OT_add_object_group(Operator):
 
     @classmethod
     def poll(cls, context):
+        print("test")
         for obj in context.selected_objects:
             if obj.type == 'MESH' and not obj.group_info:
                 return True
