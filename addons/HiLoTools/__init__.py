@@ -65,7 +65,10 @@ def register():
 
     # Internationalization
     load_dictionary(dictionary)
-    bpy.app.translations.register(__addon_name__, common_dictionary)
+    try:
+        bpy.app.translations.register(__addon_name__, common_dictionary)
+    except ValueError:
+        print("发生了错误..")
 
     key_register()
     depsgraph_register()

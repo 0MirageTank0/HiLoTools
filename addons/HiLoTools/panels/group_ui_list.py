@@ -12,12 +12,11 @@ class OBJECT_UL_object_groups(bpy.types.UIList):
                      icon="RESTRICT_SELECT_OFF" if obj_group.is_active else
                      "VIS_SEL_11" if scene.active_all else "RESTRICT_SELECT_ON",
                      emboss=False)
-            row.prop(obj_group, "group_name",text="", emboss=False)
+            row.prop(obj_group, "group_name", text="", emboss=False)
             if not obj_group.low_model:
                 row.label(text="无低模物体", icon='ERROR')
             row.prop(obj_group, "is_visible", text="", emboss=False,
                      icon='HIDE_OFF' if obj_group.is_visible else 'HIDE_ON')
-            # row.prop(obj_group, "is_locked", text="",emboss=False,icon='LOCKED' if obj_group.is_locked else
             # 'UNLOCKED')
         elif self.layout_type == 'GRID':
             layout.alignment = 'CENTER'
@@ -26,8 +25,6 @@ class OBJECT_UL_object_groups(bpy.types.UIList):
                      emboss=False)
 
     def filter_items(self, context, data, propname):
-
-        filtered = []
         sorted_array = []
         items = getattr(data, propname)
         # Filter

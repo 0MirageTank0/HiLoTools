@@ -1,5 +1,5 @@
 import bpy
-from bpy.types import Object, Material
+from bpy.types import Object, Material, Scene
 
 
 def create_material(name, color=(1.0, 0.0, 0.0, 1.0), override=False):
@@ -33,6 +33,6 @@ def apply_material_to_object(obj: Object, material):
         obj.data.materials[0] = material
 
 
-def clear_material(obj: Object):
+def clear_object_material(obj: Object):
     """清除物体的所有材质"""
     obj.data.materials.clear()

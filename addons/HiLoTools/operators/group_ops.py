@@ -1,11 +1,9 @@
 import uuid
 import bpy
-from bpy.props import StringProperty, BoolProperty, EnumProperty
+from bpy.props import StringProperty, BoolProperty, EnumProperty, PointerProperty
 from bpy.types import Operator, Context, Object
 
-
-from addons.HiLoTools.properties.AddonProperties import ObjectGroup
-from addons.HiLoTools.utils.entry_utils import add_group_entry, del_group_entry, get_group_entry
+from addons.HiLoTools.properties.object_group import ObjectGroup, get_group_entry, add_group_entry, del_group_entry
 
 
 class OBJECT_OT_add_object_group(Operator):
@@ -17,7 +15,6 @@ class OBJECT_OT_add_object_group(Operator):
 
     @classmethod
     def poll(cls, context):
-        print("test")
         for obj in context.selected_objects:
             if obj.type == 'MESH' and not obj.group_info:
                 return True
@@ -53,6 +50,8 @@ class OBJECT_OT_add_object_group(Operator):
     def invoke(self, context, event):
         for obj in context.selected_objects:
             if obj.type == 'MESH' and not obj.group_info:
+                split_name = obj.name.rsplit("_", 1)
+                self.group_name = split_name[0]
                 self.mesh_name = obj.name
                 break
         wm = context.window_manager
@@ -65,7 +64,7 @@ class OBJECT_OT_add_object_group(Operator):
         col.prop(self, "group_name")
         col.prop(self, "mesh_name")
         box = col.box()
-        box.label(text="已选择：")
+        box.label(text="已选择的高模：")
         for obj in selected_mesh_objects:
             box.label(text=obj.name, translate=False)
 
@@ -120,11 +119,21 @@ class OBJECT_OT_add_object_to_group(Operator):
                 group.high_model = selected_high_model
                 selected_high_model.group_info = scene.object_groups[index].uuid
                 scene.selected_high_model = None
+                context.area.tag_redraw()
                 self.report({'INFO'}, "已添加到当前选中的物体组")
                 return {'FINISHED'}
         self.report({'WARNING'}, "请选择高模物体")
 
         return {'CANCELLED'}
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self)
+
+    def draw(self, context: Context):
+        scene = context.scene
+        layout = self.layout
+        layout.prop(scene, "selected_high_model", text="选择高模物体", icon='SHADING_RENDERED')
 
 
 class OBJECT_OT_remove_object_from_group(Operator):
@@ -133,23 +142,42 @@ class OBJECT_OT_remove_object_from_group(Operator):
     bl_description = "从当前选中的物体组中删除选中的物体"
     bl_options = {'REGISTER', 'UNDO'}
 
-    index: bpy.props.IntProperty(name="Index")  
+    object_name: StringProperty(name="Object Name")
 
     def execute(self, context: Context):
         scene = context.scene
         index = scene.object_groups_index
         if 0 <= index < len(scene.object_groups):
             group: ObjectGroup = scene.object_groups[index]
-            high_models = group.high_models
-            if len(high_models) <= self.index:
+            if self.object_name:
+                if group.low_model and group.low_model.name == self.object_name:
+                    group.low_model.group_info = ""
+                    group.low_model = None
+                    self.report({'INFO'}, "已从物体组中移出")
+                    return {'FINISHED'}
+
+                i: int = 0
+                for h in group.high_models:
+                    if h.high_model and h.high_model.name == self.object_name:
+                        h.high_model.group_info = ""
+                        group.high_models.remove(i)
+                        self.report({'INFO'}, "已从物体组中移出")
+                        return {'FINISHED'}
+                    i += 1
                 self.report({'WARNING'}, "未找到指定的物体")
                 return {'CANCELLED'}
-            high_models[self.index].high_model.group_info = ""
-            # del high_models[index].high_model["group"]
-
-            high_models.remove(self.index)
-            self.report({'INFO'}, "已从当前选中的物体组中删除")
-            return {'FINISHED'}
+            else:
+                removed_num: int = 0
+                for i in range(len(group.high_models) - 1, -1, -1):
+                    if not group.high_models[i].high_model:
+                        group.high_models.remove(i)
+                        removed_num += 1
+                if removed_num:
+                    self.report({'INFO'}, f"清除了{removed_num}个空物体")
+                    return {'FINISHED'}
+                else:
+                    self.report({'INFO'}, f"未发现存在任何空物体")
+                return {'CANCELLED'}
 
 
 class OBJECT_OT_rename_group(Operator):
@@ -162,23 +190,23 @@ class OBJECT_OT_rename_group(Operator):
         if self.auto_update_name:
             self.new_name = self.new_display_name
 
-    new_display_name: StringProperty(name="新组别名称", description="新显示名称", options={'TEXTEDIT_UPDATE'},
-                                     update=update_display_name)  
-    new_name: StringProperty(name="网格名称", description="新名称")  
-    auto_update_name: BoolProperty(name="自动名称", description="是否自动更新名称", default=False)  
-    update_mesh_name: BoolProperty(name="同步网格名称", description="是否同步网格名称", default=True)  
-    update_low_model: BoolProperty(name="同步低模名称", description="是否同步低模名称", default=True)  
-    update_high_model: BoolProperty(name="同步高模名称", description="是否同步高模名称", default=True)  
+    new_display_name: StringProperty(name="新组别名称", description="新显示名称", options={'TEXTEDIT_UPDATE'}
+                                     , update=update_display_name)
+    new_name: StringProperty(name="网格名称", description="新名称")
+    auto_update_name: BoolProperty(name="自动名称", description="是否自动更新名称", default=False)
+    update_mesh_name: BoolProperty(name="同步网格名称", description="是否同步网格名称", default=True)
+    update_low_model: BoolProperty(name="同步低模名称", description="是否同步低模名称", default=True)
+    update_high_model: BoolProperty(name="同步高模名称", description="是否同步高模名称", default=True)
     rename_type: EnumProperty(name="重命名类型", description="重命名类型", items=[
         ("Replace", "替换全部", "完全替换名称"),
         ("Prefix", "替换前缀", "若模型名称包含旧组名称的前缀，则仅替换前缀。否则在名称前追加新名称"),
-    ])  
+    ])
+    group_uuid: StringProperty()
 
     def execute(self, context: Context):
         scene = context.scene
-        index = scene.object_groups_index
-        group: ObjectGroup = scene.object_groups[index]
-
+        group, _ = get_group_entry(self.group_uuid)
+        print(group)
         if self.new_name == "" or self.new_display_name == "":
             self.report({'WARNING'}, "无效的新名称")
             return {'CANCELLED'}
@@ -234,6 +262,7 @@ class OBJECT_OT_rename_group(Operator):
     def draw(self, context: Context):
         scene = context.scene
         layout = self.layout
+        layout.label(text=self.group_uuid)
         layout.prop(self, property="new_display_name", icon="GREASEPENCIL")
         #
         layout.prop(self, "auto_update_name")

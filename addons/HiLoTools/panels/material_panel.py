@@ -13,7 +13,7 @@ class VIEW3D_PT_MaterialPanel(bpy.types.Panel):
     bl_options = {"DEFAULT_CLOSED"}
     bl_order = 2
 
-    def draw(self, context : Context):
+    def draw(self, context: Context):
         layout = self.layout
         scene = context.scene
         row = layout.row()

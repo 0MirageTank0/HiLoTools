@@ -2,7 +2,7 @@ import bpy
 from bpy.props import StringProperty, BoolProperty, EnumProperty, CollectionProperty
 from bpy.types import Operator, Context, Object
 
-from addons.HiLoTools.properties.AddonProperties import ObjectGroup
+from addons.HiLoTools.properties.object_group import ObjectGroup
 
 
 class ModifierSetting(bpy.types.PropertyGroup):

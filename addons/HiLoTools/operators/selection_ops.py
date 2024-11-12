@@ -1,58 +1,77 @@
 from typing import Optional
 
 import bpy
-from bpy.props import EnumProperty, BoolProperty, StringProperty
+from bpy.props import EnumProperty, BoolProperty, StringProperty, IntProperty
 from bpy.types import Operator, Context, Object
 from bpy_extras.view3d_utils import region_2d_to_vector_3d, region_2d_to_origin_3d
 
-from addons.HiLoTools.properties.AddonProperties import ObjectGroup
-from addons.HiLoTools.utils.entry_utils import get_group_entry
+from addons.HiLoTools.properties.object_group import ObjectGroup, get_group_entry
+
+
+class OBJECT_OT_select_group(Operator):
+    bl_idname = "object.select_group"
+    bl_label = "选择组"
+    bl_description = "选择组"
+    bl_options = {"REGISTER", 'UNDO'}
+
+    group_index: IntProperty()
+    select_low: BoolProperty()
+    select_high: BoolProperty()
+    clear_selection: BoolProperty(default=True)
+
+    def execute(self, context):
+        scene = context.scene
+
+        if self.group_index >= len(scene.object_groups) or self.group_index < 0:
+            return {'CANCELLED'}
+        grp: ObjectGroup = scene.object_groups[self.group_index]
+        if grp is not None:
+            if self.clear_selection:
+                bpy.ops.object.select_all(action='DESELECT')
+            if self.select_high:
+                for item in grp.high_models:
+                    if item.high_model:
+                        item.high_model.select_set(True)
+                        context.view_layer.objects.active = item.high_model
+            if self.select_low and grp.low_model:
+                grp.low_model.select_set(True)
+                context.view_layer.objects.active = grp.low_model
+        else:
+            return {'CANCELLED'}
+        return {'FINISHED'}
 
 
 class OBJECT_OT_switch_group_selection(Operator):
-    bl_idname = "object.select_group_object"
+    bl_idname = "object.switch_group_selection"
     bl_label = "组内切换"
     bl_description = "根据active_object，切换组内物体"
     bl_options = {"REGISTER", 'UNDO'}
 
     selection: EnumProperty(name="选择范围", description="选择模式",
                             items=[("ALL", "全部", "选择全部范围"), ("HIGH MODEL", "高模", "只选择高模"),
-                                   ("LOW MODEL", "低模", "只选择低模")])  
-    update_select_index: BoolProperty(name="更新索引", description="是否更新组索引，若开启则自动根据所选切换组",
-                                      default=False)  
+                                   ("LOW MODEL", "低模", "只选择低模")])
 
     def execute(self, context: Context):
         active_obj: Object = context.active_object
-        scene = context.scene
 
         if not active_obj:
             return {"CANCELLED"}
 
-        target_index = -1
-        if active_obj.group_info:
-            _, target_index = get_group_entry(active_obj.group_info)
-
-        if target_index < 0:
+        if not active_obj.group_info:
             self.report({'WARNING'}, "此物体不属于任何组")
             return {"CANCELLED"}
 
-        object_groups: ObjectGroup = scene.object_groups[target_index]
+        _, group_index = get_group_entry(active_obj.group_info)
+        if group_index < 0:
+            self.report({'WARNING'}, "过期的UUID")
+            return {"CANCELLED"}
 
         bpy.ops.object.select_all(action='DESELECT')
-
-        if self.selection == 'HIGH MODEL' or self.selection == 'ALL':
-            for item in object_groups.high_models:
-                if item.high_model:
-                    item.high_model.select_set(True)
-                    context.view_layer.objects.active = item.high_model
-
-        if self.selection == 'LOW MODEL' or self.selection == 'ALL':
-            if object_groups.low_model:
-                object_groups.low_model.select_set(True)
-                context.view_layer.objects.active = object_groups.low_model
-
-        if self.update_select_index:
-            scene.object_groups_index = target_index
+        select_low = self.selection == 'LOW MODEL'
+        select_high = self.selection == 'HIGH MODEL'
+        if self.selection == 'ALL':
+            select_high = select_low = True
+        bpy.ops.object.select_group(group_index=group_index, select_low=select_low, select_high=select_high)
 
         return {"FINISHED"}
 
@@ -83,8 +102,8 @@ class OBJECT_OT_hover_select(Operator):
             if obj:
                 if self.current_object != obj.name:
                     self.current_object = obj.name
-                    with context.temp_override(active_object=obj):
-                        bpy.ops.object.select_group_object(selection="ALL", update_select_index=True)
+                    _, index = get_group_entry(obj.group_info)
+                    bpy.ops.object.select_group(group_index=index, select_low=True, select_high=True)
             else:
                 # 鼠标移出物体范围时取消选择
                 bpy.ops.object.select_all(action='DESELECT')
@@ -119,7 +138,7 @@ class OBJECT_OT_select_object(Operator):
     bl_label = "选择物体"
     bl_options = {'REGISTER', 'UNDO'}
 
-    object_name: bpy.props.StringProperty(name="Object Name")  
+    object_name: bpy.props.StringProperty(name="Object Name")
 
     def execute(self, context: Context):
         # 获取指定名称的物体
@@ -133,4 +152,57 @@ class OBJECT_OT_select_object(Operator):
                 self.report({'WARNING'}, f"{self.object_name} 物体存在，但 不在当前场景中")
         else:
             self.report({'WARNING'}, f"未找到物体 {self.object_name}")
+        return {'FINISHED'}
+
+
+class OBJECT_OT_select_all_group(Operator):
+    bl_idname = "object.select_all_group"
+    bl_label = "全选组"
+    bl_description = "全选所有组物体"
+    bl_options = {"REGISTER", "UNDO"}
+
+    select_range: EnumProperty(name="Range", items=[
+        ("ALL", "全部", "选择全部"),
+        ("HIGH", "高模", "只选择高模"),
+        ("LOW", "低模", "只选择低模"),
+    ])
+    clear_selection: BoolProperty(name="Clear Selection", default=True)
+
+    @classmethod
+    def poll(cls, context):
+        scene = context.scene
+        return bool(scene.object_groups)
+
+    def execute(self, context):
+        scene = context.scene
+        select_low: bool = self.select_range == "LOW"
+        select_high: bool = self.select_range == "HIGH"
+        if self.select_range == "ALL":
+            select_low = select_high = True
+        if self.clear_selection:
+            bpy.ops.object.select_all(action='DESELECT')
+        for index in range(len(scene.object_groups)):
+            bpy.ops.object.select_group(group_index=index, select_low=select_low, select_high=select_high)
+
+        return {'FINISHED'}
+
+
+class OBJECT_OT_select_ungrouped_objects(Operator):
+    bl_idname = "object.select_ungrouped_objects"
+    bl_label = "选择未分组对象"
+    bl_description = "选择未分组的对象"
+    bl_options = {"REGISTER", "UNDO"}
+
+    clear_selection: BoolProperty(name="Clear Selection", default=True)
+
+    def execute(self, context):
+        scene = context.scene
+
+        if self.clear_selection:
+            bpy.ops.object.select_all(action='DESELECT')
+
+        for obj in scene.objects:
+            if obj.type == "MESH" and not obj.group_info:
+                obj.select_set(True)
+
         return {'FINISHED'}
