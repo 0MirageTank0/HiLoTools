@@ -62,22 +62,22 @@ class VIEW3D_PT_SummaryPanel(bpy.types.Panel):
                     row.prop(h.high_model, "name", text="", emboss=False)
                     row.operator(OBJECT_OT_select_object.bl_idname,
                                  text="", icon='RESTRICT_SELECT_OFF', translate=False).object_name = h_name
-
-            row = low_area.row()
-            if grp.low_model:
-                l_name = grp.low_model.name
-                row.alert = grp.completion_status != "finished"
-                row.label(text=l_name, translate=False)
-                if row.alert:
-                    row.label(text=grp.completion_status)
+            if has_any_low:
+                row = low_area.row()
+                if grp.low_model:
+                    l_name = grp.low_model.name
+                    row.alert = grp.completion_status != "finished"
+                    row.label(text=l_name, translate=False)
+                    if row.alert:
+                        row.label(text=grp.completion_status)
+                    else:
+                        row.label(icon="CHECKMARK", text="")
+                    row.operator(OBJECT_OT_select_object.bl_idname,
+                                 text="", icon='RESTRICT_SELECT_OFF', translate=False).object_name = l_name
                 else:
-                    row.label(icon="CHECKMARK", text="")
-                row.operator(OBJECT_OT_select_object.bl_idname,
-                             text="", icon='RESTRICT_SELECT_OFF', translate=False).object_name = l_name
-            else:
-                if has_high_in_group:
-                    row.alert = True
-                    row.label(text=f"{grp.group_name}组 存在高模但无低模",icon='ERROR')
+                    if has_high_in_group:
+                        row.alert = True
+                        row.label(text=f"{grp.name}组 存在高模但无低模",icon='ERROR')
 
         # if any(grp.low_model for grp in scene.object_groups):
         #     box = layout.box()
@@ -121,7 +121,7 @@ class VIEW3D_PT_SummaryPanel(bpy.types.Panel):
         empty = True
         for obj in scene.objects:
             if obj.type == "MESH":
-                if not obj.group_info:
+                if not obj.group_uuid:
                     obj_name_set.add(obj.name)
                     empty = False
         if empty:

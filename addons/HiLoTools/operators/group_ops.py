@@ -1,6 +1,5 @@
 import uuid
-import bpy
-from bpy.props import StringProperty, BoolProperty, EnumProperty, PointerProperty
+from bpy.props import StringProperty, BoolProperty, EnumProperty
 from bpy.types import Operator, Context, Object
 
 from addons.HiLoTools.properties.object_group import ObjectGroup, get_group_entry, add_group_entry, del_group_entry
@@ -10,13 +9,13 @@ class OBJECT_OT_add_object_group(Operator):
     bl_idname = "object.add_object_group"
     bl_label = "添加物体组"
 
-    group_name: StringProperty(name="组名称", description="名称", default="New Group")
+    name: StringProperty(name="组名称", description="名称", default="New Group")
     mesh_name: StringProperty(name="网格名称", description="网格名称")
 
     @classmethod
     def poll(cls, context):
         for obj in context.selected_objects:
-            if obj.type == 'MESH' and not obj.group_info:
+            if obj.type == 'MESH' and not obj.group_uuid:
                 return True
         return False
 
@@ -24,21 +23,21 @@ class OBJECT_OT_add_object_group(Operator):
         scene = context.scene
         sub_objs = context.selected_objects
         obj_group: ObjectGroup = scene.object_groups.add()
-        obj_group.group_name = self.group_name
+        obj_group.name = self.name
         obj_group.model_name = self.mesh_name
         obj_group.uuid = str(uuid.uuid4())
         add_group_entry(obj_group)
         warning_text = ""
         for sub_obj in sub_objs:
             if sub_obj.type == 'MESH':
-                if sub_obj.group_info:
-                    grp, _ = get_group_entry(sub_obj.group_info)
+                if sub_obj.group_uuid:
+                    grp, _ = get_group_entry(sub_obj.group_uuid)
                     if grp:
-                        warning_text += grp.group_name + " "
+                        warning_text += grp.name + " "
                         continue
                 sub_item = obj_group.high_models.add()
                 sub_item.high_model = sub_obj
-                sub_obj.group_info = obj_group.uuid
+                sub_obj.group_uuid = obj_group.uuid
                 # sub_obj["group"] = obj_group
         if warning_text:
             self.report({'WARNING'}, "因已添加到其他组，已跳过：" + warning_text)
@@ -49,9 +48,9 @@ class OBJECT_OT_add_object_group(Operator):
 
     def invoke(self, context, event):
         for obj in context.selected_objects:
-            if obj.type == 'MESH' and not obj.group_info:
+            if obj.type == 'MESH' and not obj.group_uuid:
                 split_name = obj.name.rsplit("_", 1)
-                self.group_name = split_name[0]
+                self.name = split_name[0]
                 self.mesh_name = obj.name
                 break
         wm = context.window_manager
@@ -61,7 +60,7 @@ class OBJECT_OT_add_object_group(Operator):
         selected_mesh_objects = [obj for obj in context.selected_objects if obj.type == 'MESH']
         layout = self.layout
         col = layout.column()
-        col.prop(self, "group_name")
+        col.prop(self, "name")
         col.prop(self, "mesh_name")
         box = col.box()
         box.label(text="已选择的高模：")
@@ -80,12 +79,12 @@ class OBJECT_OT_remove_object_group(Operator):
         if 0 <= index < len(scene.object_groups):
             group: ObjectGroup = scene.object_groups[index]
             if group.low_model:
-                group.low_model.group_info = ""
+                group.low_model.group_uuid = ""
                 # del group.low_model["group"]
             for item in group.high_models:
-                print(item.high_model, item.high_model.group_info)
+                print(item.high_model, item.high_model.group_uuid)
                 if item.high_model:
-                    item.high_model.group_info = ""
+                    item.high_model.group_uuid = ""
                     # del item.high_model["group"]
             del_group_entry(group)
             scene.object_groups.remove(index)
@@ -109,15 +108,15 @@ class OBJECT_OT_add_object_to_group(Operator):
 
         if selected_high_model:
             if 0 <= index < len(scene.object_groups):
-                if selected_high_model.group_info:
-                    grp, _ = get_group_entry(selected_high_model.group_info)
+                if selected_high_model.group_uuid:
+                    grp, _ = get_group_entry(selected_high_model.group_uuid)
                     if grp:
-                        self.report({'WARNING'}, "物体已存在于组" + grp.group_name)
+                        self.report({'WARNING'}, "物体已存在于组" + grp.name)
                         return {'CANCELLED'}
                 high_group = scene.object_groups[index].high_models
                 group = high_group.add()
                 group.high_model = selected_high_model
-                selected_high_model.group_info = scene.object_groups[index].uuid
+                selected_high_model.group_uuid = scene.object_groups[index].uuid
                 scene.selected_high_model = None
                 context.area.tag_redraw()
                 self.report({'INFO'}, "已添加到当前选中的物体组")
@@ -151,7 +150,7 @@ class OBJECT_OT_remove_object_from_group(Operator):
             group: ObjectGroup = scene.object_groups[index]
             if self.object_name:
                 if group.low_model and group.low_model.name == self.object_name:
-                    group.low_model.group_info = ""
+                    group.low_model.group_uuid = ""
                     group.low_model = None
                     self.report({'INFO'}, "已从物体组中移出")
                     return {'FINISHED'}
@@ -159,7 +158,7 @@ class OBJECT_OT_remove_object_from_group(Operator):
                 i: int = 0
                 for h in group.high_models:
                     if h.high_model and h.high_model.name == self.object_name:
-                        h.high_model.group_info = ""
+                        h.high_model.group_uuid = ""
                         group.high_models.remove(i)
                         self.report({'INFO'}, "已从物体组中移出")
                         return {'FINISHED'}
@@ -246,7 +245,7 @@ class OBJECT_OT_rename_group(Operator):
                             high_model.name = self.new_name + scene.high_suffix
                         named_times += 1
             group.model_name = self.new_name
-        group.group_name = self.new_display_name
+        group.name = self.new_display_name
         context.area.tag_redraw()
         return {"FINISHED"}
 
@@ -255,7 +254,7 @@ class OBJECT_OT_rename_group(Operator):
         index = scene.object_groups_index
         group: ObjectGroup = scene.object_groups[index]
         self.new_name = group.model_name
-        self.new_display_name = group.group_name
+        self.new_display_name = group.name
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
 

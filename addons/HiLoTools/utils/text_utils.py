@@ -90,7 +90,7 @@ def draw_callback_px(self, context):
             second_text=display_second_text,
             center=true_text_position,
             margin=20,
-            bg_color=(.25, .25, .25, .15),
+            bg_color=(.25, .25, .25, .55),
         )
         # blf.size(fontId, 50)
         # DrawTextbox(

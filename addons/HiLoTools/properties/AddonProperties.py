@@ -7,7 +7,7 @@ from bpy.props import CollectionProperty, IntProperty, PointerProperty, EnumProp
 from addons.HiLoTools.properties.object_group import mesh_object_poll, ObjectGroup
 from addons.HiLoTools.utils.properties_update_utils import update_background_color, update_high_model_color, \
     update_low_model_color, update_display_mode, \
-    update_select_group_index, update_active_all, update_transparent_ungrouped
+    update_select_group_index, update_x_ray, update_transparent_ungrouped
 
 addon_properties = {
     bpy.types.Scene: {
@@ -25,7 +25,8 @@ addon_properties = {
                                      update=update_display_mode),
         "transparent_ungrouped": BoolProperty(name="影响组外物体", description="半透不属于任何组的物体",
                                               update=update_transparent_ungrouped),
-        "active_all": BoolProperty(name="全部使能", default=True, update=update_active_all),
+        "x_ray": BoolProperty(name="x ray", description="透明高低模", update=update_x_ray),
+        "active_group_uuid": StringProperty(name="当前活跃组", default=""),
         "low_suffix": StringProperty(name="低模后缀", default="_low"),
         "high_suffix": StringProperty(name="高模后缀", default="_high"),
         "background_material": PointerProperty(name="背景材质", type=Material),
@@ -40,6 +41,6 @@ addon_properties = {
 
     },
     bpy.types.Object: {
-        "group_info": StringProperty(name="UUID"),
+        "group_uuid": StringProperty(name="UUID"),
     }
 }

@@ -30,16 +30,16 @@ def on_object_num_changed(current_objects_set: set):
         # 检测新添加的对象
         new_object_set = current_objects_set - last_object_set
         for new_object in new_object_set:
-            uuid = new_object.group_info
+            uuid = new_object.group_uuid
             if uuid:
                 # 检查uuid是否存在
                 grp, _ = get_group_entry(uuid)
                 if not grp:  # 不存在组
-                    new_object.group_info = ""
+                    new_object.group_uuid = ""
                     print("clear_uuid")
                 else:  # 存在组
                     # 可能是撤销导致的物体增加 进行双重检查
-                    if all(hm.high_model != hm.high_model for hm in grp.high_models):
+                    if all(hm.high_model != new_object for hm in grp.high_models):
                         h = grp.high_models.add()
                         h.high_model = new_object
                         print("add_to_group")
@@ -52,7 +52,7 @@ def on_object_num_changed(current_objects_set: set):
             if is_object_valid(del_object):
                 if del_object.type != "MESH":
                     return
-                uuid = del_object.group_info
+                uuid = del_object.group_uuid
                 if uuid:
                     grp, _ = get_group_entry(uuid)
                     # 如果是低模 则删除低模
@@ -85,10 +85,10 @@ def on_object_select_changed(current_active_object: Object):
             return
         current_active_object.color = (1, 0, 0, 0.5)
         grp = None
-        if current_active_object.group_info:
-            grp, _ = get_group_entry(current_active_object.group_info)
+        if current_active_object.group_uuid:
+            grp, _ = get_group_entry(current_active_object.group_uuid)
         if grp:
-            show_text_on_object(grp.group_name, current_active_object.name)
+            show_text_on_object(grp.name, current_active_object.name)
         else:
             show_text_on_object("不属于任何组", current_active_object.name, (.9, 0, 0, 1))
         return
@@ -99,8 +99,8 @@ def update_group_index(scene: Scene):
     """处理编辑模式下，组索引更新"""
     global index_in_edit
     active_object = bpy.context.object
-    if active_object.group_info:
-        _, index = get_group_entry(active_object.group_info)
+    if active_object.group_uuid:
+        _, index = get_group_entry(active_object.group_uuid)
         if index is not None:
             index_in_edit = index
             scene.object_groups_index = index

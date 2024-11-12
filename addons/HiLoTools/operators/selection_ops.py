@@ -57,11 +57,11 @@ class OBJECT_OT_switch_group_selection(Operator):
         if not active_obj:
             return {"CANCELLED"}
 
-        if not active_obj.group_info:
+        if not active_obj.group_uuid:
             self.report({'WARNING'}, "此物体不属于任何组")
             return {"CANCELLED"}
 
-        _, group_index = get_group_entry(active_obj.group_info)
+        _, group_index = get_group_entry(active_obj.group_uuid)
         if group_index < 0:
             self.report({'WARNING'}, "过期的UUID")
             return {"CANCELLED"}
@@ -82,9 +82,10 @@ class OBJECT_OT_hover_select(Operator):
     bl_description = "Select object under mouse while Alt is pressed"
     bl_options = {'REGISTER', 'UNDO'}
 
-    current_object: StringProperty()
+    current_group_uuid: StringProperty()
 
     def modal(self, context, event):
+        scene = context.scene
         # 当松开 Alt 键时，停止操作
         if event.type == 'LEFT_ALT' and event.value == 'RELEASE':
             # bpy.ops.object.select_all(action='DESELECT')
@@ -99,15 +100,17 @@ class OBJECT_OT_hover_select(Operator):
             obj = self.get_object_under_mouse(context, region, region_3d, coord)
 
             # 如果指向新物体，更新选择状态
-            if obj:
-                if self.current_object != obj.name:
-                    self.current_object = obj.name
-                    _, index = get_group_entry(obj.group_info)
-                    bpy.ops.object.select_group(group_index=index, select_low=True, select_high=True)
+            if obj and obj.group_uuid:
+                if self.current_group_uuid != obj.group_uuid:
+                    _, index = get_group_entry(obj.group_uuid)
+                    self.current_group_uuid = obj.group_uuid
+                    if index >= 0:
+                        print(index)
+                        scene.object_groups_index = index
             else:
                 # 鼠标移出物体范围时取消选择
                 bpy.ops.object.select_all(action='DESELECT')
-                self.current_object = ""
+                self.current_group_uuid = ""
 
         return {'RUNNING_MODAL'}
 
@@ -121,7 +124,8 @@ class OBJECT_OT_hover_select(Operator):
             self.report({'WARNING'}, "Please hold Alt key to activate hover select.")
             return {'CANCELLED'}
 
-    def get_object_under_mouse(self, context: Context, region, region_3d, coord) -> Optional[Object]:
+    @staticmethod
+    def get_object_under_mouse(context: Context, region, region_3d, coord) -> Optional[Object]:
         # 转换鼠标坐标到 3D 空间的射线
         view_vector = region_2d_to_vector_3d(region, region_3d, coord)
         ray_origin = region_2d_to_origin_3d(region, region_3d, coord)
@@ -182,7 +186,10 @@ class OBJECT_OT_select_all_group(Operator):
         if self.clear_selection:
             bpy.ops.object.select_all(action='DESELECT')
         for index in range(len(scene.object_groups)):
-            bpy.ops.object.select_group(group_index=index, select_low=select_low, select_high=select_high)
+            bpy.ops.object.select_group(group_index=index,
+                                        select_low=select_low, 
+                                        select_high=select_high,
+                                        clear_selection=False)
 
         return {'FINISHED'}
 
@@ -202,7 +209,7 @@ class OBJECT_OT_select_ungrouped_objects(Operator):
             bpy.ops.object.select_all(action='DESELECT')
 
         for obj in scene.objects:
-            if obj.type == "MESH" and not obj.group_info:
+            if obj.type == "MESH" and not obj.group_uuid:
                 obj.select_set(True)
 
         return {'FINISHED'}

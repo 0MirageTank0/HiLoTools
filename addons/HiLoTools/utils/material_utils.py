@@ -25,6 +25,38 @@ def create_material(name, color=(1.0, 0.0, 0.0, 1.0), override=False):
     return material
 
 
+def apply_material_to_group(group, material):
+    apply_material_to_group_low_model(group, material)
+    apply_material_to_group_high_model(group, material)
+
+
+def apply_material_to_group_high_model(group, material):
+    for h in group.high_models:
+        if h.high_model:
+            apply_material_to_object(h.high_model, material)
+
+
+def apply_material_to_group_low_model(group, material):
+    if group.low_model:
+        apply_material_to_object(group.low_model, material)
+
+
+def clear_group_material(group):
+    clear_low_model_material_in_group(group)
+    clear_high_model_material_in_group(group)
+
+
+def clear_high_model_material_in_group(group):
+    for h in group.high_models:
+        if h.high_model:
+            clear_object_material(h.high_model)
+
+
+def clear_low_model_material_in_group(group):
+    if group.low_model:
+        clear_object_material(group.low_model)
+
+
 def apply_material_to_object(obj: Object, material):
     """将材质应用到物体"""
     if not obj.data.materials:

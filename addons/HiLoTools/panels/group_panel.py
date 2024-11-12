@@ -42,12 +42,13 @@ class VIEW3D_PT_ObjectGroupsPanel(bpy.types.Panel):
             row.operator(OBJECT_OT_remove_object_group.bl_idname, text="删除物体组")
 
             # 显示物体组列表
-            layout.template_list("OBJECT_UL_object_groups", "", scene, "object_groups", scene, "object_groups_index", rows=2)
+            layout.template_list("OBJECT_UL_object_groups", "", scene, "object_groups", scene, "object_groups_index",
+                                 rows=2)
 
             if scene.display_mode == "transparent":
                 if not scene.background_material:
                     box = layout.box()
-                    box.label(text="为了使半透正常工作，先初始化背景材质", icon='ERROR')
+                    box.label(text="为了使半透工作，先初始化背景材质", icon='ERROR')
                     op = box.operator(MATRIAL_OT_create_default_material.bl_idname, text="初始化背景材质")
                     op.high_model = False
                     op.low_model = False
@@ -56,7 +57,6 @@ class VIEW3D_PT_ObjectGroupsPanel(bpy.types.Panel):
 
             row = layout.row(align=True)
             if len(scene.object_groups) > 0:
-                row.label(text="模式")
                 row.prop_enum(scene, "display_mode", "default")
                 row.prop_enum(scene, "display_mode", "transparent")
                 row.prop_enum(scene, "display_mode", "focus")
@@ -66,31 +66,8 @@ class VIEW3D_PT_ObjectGroupsPanel(bpy.types.Panel):
                 obj_group: ObjectGroup = scene.object_groups[scene.object_groups_index]
                 col = layout.column()
                 row = col.row(align=True)
-                row.label(text="当前组:" + obj_group.group_name)
+                row.label(text="当前组:" + obj_group.name)
                 row.operator(OBJECT_OT_rename_group.bl_idname, text="组重命名").group_uuid = obj_group.uuid
-                box = col.box()
-                box.label(text="低模:", icon='SHADING_WIRE')
-                low_col = box.column(align=True)
-                if not obj_group.low_model:
-                    low_col.prop(obj_group, "low_model", text="低模物体")
-                    low_col.operator(OBJECT_OT_generate_low_poly_object.bl_idname, text="生成低模物体")
-                else:
-                    row = low_col.row(align=True)
-                    draw_in_group_model_button(row, obj_group.low_model)
-                    low_col.prop(obj_group, "completion_status", text="进度")
-
-                if len(obj_group.high_models) <= 1:
-                    box = col.box()
-                    box.label(text="高模:", icon='SHADING_RENDERED')
-                    col = box.column(align=True)
-                    if len(obj_group.high_models) == 1:
-                        row = col.row(align=True)
-                        first_high_model: ObjectSubItem = obj_group.high_models[0]
-                        draw_in_group_model_button(row, first_high_model.high_model)
-                        # box.separator()
-
-                    col.operator(OBJECT_OT_add_object_to_group.bl_idname, text="添加新高模", icon='ADD')
-
         else:
             # 显示物体组列表
             col = layout.column()
@@ -98,9 +75,9 @@ class VIEW3D_PT_ObjectGroupsPanel(bpy.types.Panel):
             col.enabled = False
             box = layout.box()
             box.label(text="当前组别")
-            if context.object.group_info:
-                grp, _ = get_group_entry(context.object.group_info)
-                box.label(text=grp.group_name)
+            if context.object.group_uuid:
+                grp, _ = get_group_entry(context.object.group_uuid)
+                box.label(text=grp.name)
                 if grp.low_model == context.object:
                     box.label(text="低模物体")
                 else:
@@ -110,30 +87,70 @@ class VIEW3D_PT_ObjectGroupsPanel(bpy.types.Panel):
 
     def draw_header_preset(self, context):
         layout = self.layout
-        layout.label(text="ook1")
+        scene = context.scene
+        layout.prop(scene, "x_ray")
+
+class VIEW3D_PT_LowModelPanel(bpy.types.Panel):
+    bl_parent_id = "VIEW3D_PT_object_groups_panel"
+    bl_label = ""
+    bl_category = "物体组管理"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_order = 0
+    bl_options = {"HEADER_LAYOUT_EXPAND"}
+
+    @classmethod
+    def poll(cls, context):
+        scene = context.scene
+        return 0 <= scene.object_groups_index < len(scene.object_groups)
+
+    def draw(self, context: Context):
+        layout = self.layout
+        scene = context.scene
+        if 0 <= scene.object_groups_index < len(scene.object_groups):
+            obj_group: ObjectGroup = scene.object_groups[scene.object_groups_index]
+            box = layout.box()
+            low_col = box.column(align=True)
+            if not obj_group.low_model:
+                low_col.label(text="指定低模物体：")
+                low_col.prop(obj_group, "low_model", text="")
+                box.separator(type='LINE')
+                low_col = box.column(align=True)
+                low_col.label(text="根据高模生成：")
+                low_col.operator(OBJECT_OT_generate_low_poly_object.bl_idname, text="生成低模物体", icon='MESH_UVSPHERE')
+            else:
+                row = low_col.row(align=True)
+                draw_in_group_model_button(row, obj_group.low_model)
+                low_col.prop(obj_group, "completion_status", text="进度")
+
+    def draw_header(self, context):
+        layout = self.layout
+        layout.label(text="低模", icon='SHADING_WIRE')
+
+    def draw_header_preset(self, context):
+        scene = context.scene
+        layout = self.layout
+        obj_group: ObjectGroup = scene.object_groups[scene.object_groups_index]
+        if not obj_group.low_model:
+            layout.label(text="未分配", icon='ERROR')
+        else:
+            layout.label(text=obj_group.low_model.name, translate=False)
+
 
 
 class VIEW3D_PT_HighListPanel(bpy.types.Panel):
     bl_parent_id = "VIEW3D_PT_object_groups_panel"
-    bl_label = "高模物体列表"
+    bl_label = ""
     bl_category = "物体组管理"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
+    bl_order = 1
     bl_options = {"HEADER_LAYOUT_EXPAND"}
 
     @classmethod
-    def poll(cls, context: Context):
+    def poll(cls, context):
         scene = context.scene
-        if context.mode != 'OBJECT':
-            return False
-        if len(scene.object_groups) and 0 <= scene.object_groups_index < len(scene.object_groups):
-            obj_group: ObjectGroup = scene.object_groups[scene.object_groups_index]
-            if len(obj_group.high_models) <= 1:
-                return False
-            else:
-                return True
-        else:
-            return False
+        return 0 <= scene.object_groups_index < len(scene.object_groups)
 
     def draw(self, context: Context):
         scene = context.scene
@@ -146,3 +163,13 @@ class VIEW3D_PT_HighListPanel(bpy.types.Panel):
             draw_in_group_model_button(row, sub_item.high_model)
 
         box.operator(OBJECT_OT_add_object_to_group.bl_idname, text="添加新高模", icon='ADD')
+
+    def draw_header(self, context):
+        layout = self.layout
+        layout.label(text="高模", icon='SHADING_RENDERED')
+
+    def draw_header_preset(self, context):
+        scene = context.scene
+        layout = self.layout
+        obj_group: ObjectGroup = scene.object_groups[scene.object_groups_index]
+        layout.label(text=f"{len(obj_group.high_models)}个高模")
