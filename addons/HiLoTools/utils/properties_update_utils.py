@@ -28,17 +28,22 @@ def update_select_group_index(self, context: Context):
         return
     scene = context.scene
     index = scene.object_groups_index
+    # 在其他更新回调事件中会调用此事件，因此需要确保index合法
+    if index < 0 or index >= len(scene.object_groups):
+        return
     scene.active_group_uuid = scene.object_groups[index].uuid
     scene.selected_high_model = None
+    # 首先处理显示模式的逻辑
     if scene.display_mode == "transparent":
         bpy.ops.object.solo_group(group_index=index, influence_ungrouped=scene.transparent_ungrouped)
     elif scene.display_mode == "focus":
         bpy.ops.object.local_view_group(group_index=index)
-
+    # x_ray需要在其后进行处理
     if scene.x_ray:
-        bpy.ops.object.x_ray_group(group_index=index, clear_others_material=scene.display_mode != "transparent")
-
-    bpy.ops.object.select_all(action='DESELECT')
+        # 如果当前处于transparent模式，则不能清除材质。
+        bpy.ops.object.x_ray_group(group_index=index,
+                                   clear_others_material=scene.display_mode != "transparent")
+    # 最终处理物体选择逻辑
     bpy.ops.object.select_group(group_index=index, select_low=True, select_high=True)
 
 

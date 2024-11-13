@@ -41,6 +41,6 @@ addon_properties = {
 
     },
     bpy.types.Object: {
-        "group_uuid": StringProperty(name="UUID"),
+        "group_uuid": StringProperty(name="UUID", description="警告：请勿修改此值。此值用于快速确定物体所属，而无需遍历整个组的内容进行匹对。"),
     }
 }

@@ -3,6 +3,7 @@ from bpy.props import StringProperty, BoolProperty, EnumProperty
 from bpy.types import Operator, Context, Object
 
 from addons.HiLoTools.properties.object_group import ObjectGroup, get_group_entry, add_group_entry, del_group_entry
+from addons.HiLoTools.utils.material_utils import clear_object_material
 
 
 class OBJECT_OT_add_object_group(Operator):
@@ -17,6 +18,7 @@ class OBJECT_OT_add_object_group(Operator):
         for obj in context.selected_objects:
             if obj.type == 'MESH' and not obj.group_uuid:
                 return True
+        cls.poll_message_set("需要选择不处于其他组的高模物体")
         return False
 
     def execute(self, context: Context):
@@ -72,26 +74,31 @@ class OBJECT_OT_remove_object_group(Operator):
     bl_idname = "object.remove_object_group"
     bl_label = "删除物体组"
 
+    @classmethod
+    def poll(cls, context):
+        scene = context.scene
+        index = scene.object_groups_index
+        valid = 0 <= index < len(scene.object_groups)
+        if not valid:
+            cls.poll_message_set("需要选择组")
+        return valid
+
     def execute(self, context: Context):
         scene = context.scene
         index = scene.object_groups_index
-
-        if 0 <= index < len(scene.object_groups):
-            group: ObjectGroup = scene.object_groups[index]
-            if group.low_model:
-                group.low_model.group_uuid = ""
-                # del group.low_model["group"]
-            for item in group.high_models:
-                print(item.high_model, item.high_model.group_uuid)
-                if item.high_model:
-                    item.high_model.group_uuid = ""
-                    # del item.high_model["group"]
-            del_group_entry(group)
-            scene.object_groups.remove(index)
-            scene.object_groups_index = min(index, len(scene.object_groups) - 1)
-            self.report({'INFO'}, "物体组已删除")
-        else:
-            self.report({'WARNING'}, "未找到可删除的物体组")
+        group: ObjectGroup = scene.object_groups[index]
+        if group.low_model:
+            group.low_model.group_uuid = ""
+            # del group.low_model["group"]
+        for item in group.high_models:
+            print(item.high_model, item.high_model.group_uuid)
+            if item.high_model:
+                item.high_model.group_uuid = ""
+                # del item.high_model["group"]
+        del_group_entry(group)
+        scene.object_groups.remove(index)
+        scene.object_groups_index = min(index, len(scene.object_groups) - 1)
+        self.report({'INFO'}, "物体组已删除")
         return {'FINISHED'}
 
 
@@ -118,11 +125,12 @@ class OBJECT_OT_add_object_to_group(Operator):
                 group.high_model = selected_high_model
                 selected_high_model.group_uuid = scene.object_groups[index].uuid
                 scene.selected_high_model = None
+                # 重新计算当前的画面(可能位于solo模式)
+                scene.object_groups_index = scene.object_groups_index
                 context.area.tag_redraw()
                 self.report({'INFO'}, "已添加到当前选中的物体组")
                 return {'FINISHED'}
         self.report({'WARNING'}, "请选择高模物体")
-
         return {'CANCELLED'}
 
     def invoke(self, context, event):
@@ -141,42 +149,61 @@ class OBJECT_OT_remove_object_from_group(Operator):
     bl_description = "从当前选中的物体组中删除选中的物体"
     bl_options = {'REGISTER', 'UNDO'}
 
-    object_name: StringProperty(name="Object Name")
+    object_name: StringProperty(name="Object Name", options={'HIDDEN'})
+
+    @classmethod
+    def poll(cls, context):
+        scene = context.scene
+        index = scene.object_groups_index
+        valid = 0 <= index < len(scene.object_groups)
+        if not valid:
+            cls.poll_message_set("Error Index")
+        return valid
 
     def execute(self, context: Context):
         scene = context.scene
         index = scene.object_groups_index
-        if 0 <= index < len(scene.object_groups):
-            group: ObjectGroup = scene.object_groups[index]
-            if self.object_name:
-                if group.low_model and group.low_model.name == self.object_name:
-                    group.low_model.group_uuid = ""
-                    group.low_model = None
+        group: ObjectGroup = scene.object_groups[index]
+
+        def update_view(obj,split:int = 0):
+            # 清除材质,用于避免x-ray模式下,被删除的物体没有清除x-ray的材质
+            clear_object_material(obj)
+            # 重新计算当前的画面(可能位于solo模式)
+            scene.object_groups_index = scene.object_groups_index
+
+        if self.object_name:
+            if group.low_model and group.low_model.name == self.object_name:
+                obj = group.low_model  # 提前保存 用于update_view
+                group.low_model.group_uuid = ""
+                group.low_model = None
+                update_view(obj)
+                self.report({'INFO'}, "已从物体组中移出")
+                return {'FINISHED'}
+
+            i: int = 0
+            for h in group.high_models:
+                if h.high_model and h.high_model.name == self.object_name:
+                    obj = h.high_model  # 提前保存 用于update_view
+                    h.high_model.group_uuid = ""
+                    group.high_models.remove(i)
+                    update_view(obj)
                     self.report({'INFO'}, "已从物体组中移出")
                     return {'FINISHED'}
-
-                i: int = 0
-                for h in group.high_models:
-                    if h.high_model and h.high_model.name == self.object_name:
-                        h.high_model.group_uuid = ""
-                        group.high_models.remove(i)
-                        self.report({'INFO'}, "已从物体组中移出")
-                        return {'FINISHED'}
-                    i += 1
-                self.report({'WARNING'}, "未找到指定的物体")
-                return {'CANCELLED'}
+                i += 1
+            self.report({'WARNING'}, "未找到指定的物体")
+            return {'CANCELLED'}
+        else:
+            removed_num: int = 0
+            for i in range(len(group.high_models) - 1, -1, -1):
+                if not group.high_models[i].high_model:
+                    group.high_models.remove(i)
+                    removed_num += 1
+            if removed_num:
+                self.report({'INFO'}, f"清除了{removed_num}个空物体")
+                return {'FINISHED'}
             else:
-                removed_num: int = 0
-                for i in range(len(group.high_models) - 1, -1, -1):
-                    if not group.high_models[i].high_model:
-                        group.high_models.remove(i)
-                        removed_num += 1
-                if removed_num:
-                    self.report({'INFO'}, f"清除了{removed_num}个空物体")
-                    return {'FINISHED'}
-                else:
-                    self.report({'INFO'}, f"未发现存在任何空物体")
-                return {'CANCELLED'}
+                self.report({'INFO'}, f"未发现存在任何空物体")
+            return {'CANCELLED'}
 
 
 class OBJECT_OT_rename_group(Operator):

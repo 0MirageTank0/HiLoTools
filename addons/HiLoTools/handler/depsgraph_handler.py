@@ -88,9 +88,12 @@ def on_object_select_changed(current_active_object: Object):
         if current_active_object.group_uuid:
             grp, _ = get_group_entry(current_active_object.group_uuid)
         if grp:
-            show_text_on_object(grp.name, current_active_object.name)
+            is_low = False
+            if grp.low_model == current_active_object:
+                is_low = True
+            show_text_on_object("{}({})".format(grp.name,"低模" if is_low else "高模"), current_active_object.name)
         else:
-            show_text_on_object("不属于任何组", current_active_object.name, (.9, 0, 0, 1))
+            show_text_on_object("不属于任何组", current_active_object.name, (.9, 0, 0, 0.2))
         return
     remove_text(force=True)
 

@@ -13,13 +13,20 @@ class OBJECT_OT_solo_group(Operator):
     bl_description = "Solo Group"
     bl_options = {'REGISTER', 'UNDO'}
 
-    group_index: IntProperty(name="Group Index")
-    influence_ungrouped: BoolProperty()
+    group_index: IntProperty(options={'HIDDEN'})
+    influence_ungrouped: BoolProperty(options={'HIDDEN'})
     type: EnumProperty(items=[
-        ('APPEND', "追加显示组", "在组的active属性发生变化时调用"),
-        ('ERASE', "单独去除组", "在组的active属性发生变化时调用"),
-        ('DEFAULT', "", "")], default='DEFAULT')
-    exit_solo: BoolProperty(default=False)
+        ('TOGGLE', "单独切换", ""),
+        ('DEFAULT', "DEFAULT", "")], default='DEFAULT', options={'HIDDEN'})
+    exit_solo: BoolProperty(default=False, options={'HIDDEN'})
+
+    @classmethod
+    def poll(cls, context):
+        scene = context.scene
+        if not scene.background_material:
+            cls.poll_message_set("需要初始化北京材质")
+            return False
+        return True
 
     def execute(self, context: Context):
         scene = context.scene
@@ -51,17 +58,18 @@ class OBJECT_OT_solo_group(Operator):
                     entry: ObjectGroup
                     if index == self.group_index:
                         entry.is_active = True
-                        # clear_group_material(entry) # is_active的回调中会调用此函数,因此无需调用
+                        clear_group_material(entry)
                     else:
                         entry.is_active = False
-                        # apply_material_to_group(entry, scene.background_material)# is_active的回调中会调用此函数,因此无需调用
-            else:
+                        apply_material_to_group(entry, scene.background_material)
+            elif self.type == 'TOGGLE':
                 grp: ObjectGroup = scene.object_groups[self.group_index]
-                # APPEND/ERASE是发生在is_active的回调中,因此不处理is_active
-                if self.type == 'APPEND':
+                grp.is_active = not grp.is_active
+                if grp.is_active:
                     clear_group_material(grp)
-                elif self.type == 'ERASE':
+                else:
                     apply_material_to_group(grp, scene.background_material)
+
         return {'FINISHED'}
 
 
@@ -71,8 +79,18 @@ class OBJECT_OT_local_view_group(Operator):
     bl_description = "切换到当前物体组的本地视图"
     bl_options = {'REGISTER', 'UNDO'}
 
-    group_index: IntProperty(name="Group Index")
-    exit_local_view: BoolProperty(default=False)
+    group_index: IntProperty(options={'HIDDEN'})
+    type: EnumProperty(items=[
+        ('TOGGLE', "单独切换", ""),
+        ('DEFAULT', "DEFAULT", "")], default='DEFAULT', options={'HIDDEN'})
+    exit_local_view: BoolProperty(default=False, options={'HIDDEN'})
+
+    @classmethod
+    def poll(cls, context):
+        if context.mode != 'OBJECT':
+            cls.poll_message_set("只能在物体模式中使用")
+            return False
+        return True
 
     def execute(self, context: Context):
         scene = context.scene
@@ -84,11 +102,34 @@ class OBJECT_OT_local_view_group(Operator):
             if self.group_index < 0 or self.group_index >= len(scene.object_groups):
                 self.report({'ERROR'}, "Invalid Group Index")
                 return {'CANCELLED'}
+            # 确保始终先退出局部视图
             if in_local_view:
                 bpy.ops.view3d.localview()
-            bpy.ops.object.select_all(action='DESELECT')
-            bpy.ops.object.select_group(group_index=self.group_index, select_low=True, select_high=True)
-            bpy.ops.view3d.localview()
+
+            if self.type == 'DEFAULT':
+                for index, entry in enumerate(scene.object_groups):
+                    if index == self.group_index:
+                        entry.is_active = True
+                    else:
+                        entry.is_active = False
+                bpy.ops.object.select_group(group_index=self.group_index, select_low=True, select_high=True)
+                bpy.ops.view3d.localview()
+            elif self.type == 'TOGGLE':
+                grp: ObjectGroup = scene.object_groups[self.group_index]
+                grp.is_active = not grp.is_active
+                if grp.is_active:
+                    bpy.ops.object.select_group(group_index=self.group_index,
+                                                select_low=True, select_high=True,
+                                                clear_selection=False)
+                else:
+                    bpy.ops.object.select_group(group_index=self.group_index,
+                                                select_low=True, select_high=True,
+                                                deselect=True, clear_selection=False)
+                if not context.selected_objects:
+                    self.report({'WARNING'}, "至少选择一组")
+                else:
+                    bpy.ops.view3d.localview()
+
         return {'FINISHED'}
 
 

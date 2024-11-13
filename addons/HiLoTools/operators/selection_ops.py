@@ -17,7 +17,15 @@ class OBJECT_OT_select_group(Operator):
     group_index: IntProperty()
     select_low: BoolProperty()
     select_high: BoolProperty()
+    deselect: BoolProperty(default=False)
     clear_selection: BoolProperty(default=True)
+
+    @classmethod
+    def poll(cls, context):
+        if context.mode != 'OBJECT':
+            cls.poll_message_set("只能在物体模式中使用")
+            return False
+        return True
 
     def execute(self, context):
         scene = context.scene
@@ -31,10 +39,10 @@ class OBJECT_OT_select_group(Operator):
             if self.select_high:
                 for item in grp.high_models:
                     if item.high_model:
-                        item.high_model.select_set(True)
+                        item.high_model.select_set(not self.deselect)
                         context.view_layer.objects.active = item.high_model
             if self.select_low and grp.low_model:
-                grp.low_model.select_set(True)
+                grp.low_model.select_set(not self.deselect)
                 context.view_layer.objects.active = grp.low_model
         else:
             return {'CANCELLED'}
@@ -48,11 +56,23 @@ class OBJECT_OT_switch_group_selection(Operator):
     bl_options = {"REGISTER", 'UNDO'}
 
     selection: EnumProperty(name="选择范围", description="选择模式",
-                            items=[("ALL", "全部", "选择全部范围"), ("HIGH MODEL", "高模", "只选择高模"),
-                                   ("LOW MODEL", "低模", "只选择低模")])
+                            items=[("ALL", "全部", "选择全部范围"), ("HIGH", "高模", "只选择高模"),
+                                   ("LOW", "低模", "只选择低模")])
+
+    @classmethod
+    def poll(cls, context):
+        if context.mode != 'EDIT_MESH' and context.mode != 'OBJECT':
+            cls.poll_message_set("只能在物体模式、编辑模式中使用")
+            return False
+        return True
 
     def execute(self, context: Context):
         active_obj: Object = context.active_object
+        edit_switch: bool = False
+
+        if context.mode == 'EDIT_MESH':
+            edit_switch = True
+            bpy.ops.object.mode_set(mode='OBJECT')
 
         if not active_obj:
             return {"CANCELLED"}
@@ -67,11 +87,14 @@ class OBJECT_OT_switch_group_selection(Operator):
             return {"CANCELLED"}
 
         bpy.ops.object.select_all(action='DESELECT')
-        select_low = self.selection == 'LOW MODEL'
-        select_high = self.selection == 'HIGH MODEL'
+        select_low = self.selection == 'LOW'
+        select_high = self.selection == 'HIGH'
         if self.selection == 'ALL':
             select_high = select_low = True
         bpy.ops.object.select_group(group_index=group_index, select_low=select_low, select_high=select_high)
+
+        if edit_switch:
+            bpy.ops.object.mode_set(mode='EDIT')
 
         return {"FINISHED"}
 
@@ -142,7 +165,14 @@ class OBJECT_OT_select_object(Operator):
     bl_label = "选择物体"
     bl_options = {'REGISTER', 'UNDO'}
 
-    object_name: bpy.props.StringProperty(name="Object Name")
+    object_name: bpy.props.StringProperty(name="Object Name", options={'HIDDEN'})
+
+    @classmethod
+    def poll(cls, context):
+        if context.mode != 'OBJECT':
+            cls.poll_message_set("只能在物体模式中使用")
+            return False
+        return True
 
     def execute(self, context: Context):
         # 获取指定名称的物体
@@ -172,9 +202,13 @@ class OBJECT_OT_select_all_group(Operator):
     ])
     clear_selection: BoolProperty(name="Clear Selection", default=True)
 
+
     @classmethod
     def poll(cls, context):
         scene = context.scene
+        if context.mode != 'OBJECT':
+            cls.poll_message_set("只能在物体模式中使用")
+            return False
         return bool(scene.object_groups)
 
     def execute(self, context):
@@ -201,6 +235,13 @@ class OBJECT_OT_select_ungrouped_objects(Operator):
     bl_options = {"REGISTER", "UNDO"}
 
     clear_selection: BoolProperty(name="Clear Selection", default=True)
+
+    @classmethod
+    def poll(cls, context):
+        if context.mode != 'OBJECT':
+            cls.poll_message_set("只能在物体模式中使用")
+            return False
+        return True
 
     def execute(self, context):
         scene = context.scene

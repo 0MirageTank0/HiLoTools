@@ -35,12 +35,11 @@ def key_register():
         km = wm.keyconfigs.addon.keymaps.new(name='3D View', space_type='VIEW_3D')
         kmi = km.keymap_items.new(OBJECT_OT_switch_group_selection.bl_idname, type='WHEELUPMOUSE', value='PRESS',
                                   ctrl=True)
-        kmi.properties.selection = 'HIGH MODEL'
+        kmi.properties.selection = 'HIGH'
         addon_keymaps.append((km, kmi))
         # 绑定Ctrl + Down为查找最小值
-        km = wm.keyconfigs.addon.keymaps.new(name='3D View', space_type='VIEW_3D')
         kmi = km.keymap_items.new(OBJECT_OT_switch_group_selection.bl_idname, 'WHEELDOWNMOUSE', 'PRESS', ctrl=True)
-        kmi.properties.selection = 'LOW MODEL'
+        kmi.properties.selection = 'LOW'
         addon_keymaps.append((km, kmi))
 
         km = wm.keyconfigs.addon.keymaps.new(name='Object Mode', space_type='EMPTY')

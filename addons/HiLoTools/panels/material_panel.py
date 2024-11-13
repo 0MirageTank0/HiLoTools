@@ -19,13 +19,14 @@ class VIEW3D_PT_MaterialPanel(bpy.types.Panel):
         row = layout.row()
         row.operator(MATRIAL_OT_create_default_material.bl_idname, text="创建默认材质")
         row.operator(MATRIAL_OT_restore_default_material.bl_idname, icon="FILE_REFRESH", text="")
-        layout.prop(scene, "background_material",text="背景材质")
-        layout.prop(scene, "high_model_material",text="高模材质")
-        layout.prop(scene, "low_model_material",text="低模材质")
-
+        col = layout.column(align=True)
+        col.prop(scene, "background_material",text="背景材质")
+        col.prop(scene, "high_model_material",text="高模材质")
+        col.prop(scene, "low_model_material",text="低模材质")
+        col.separator()
         if scene.background_material:
-            layout.prop(scene, "background_color",text="背景")
+            col.prop(scene, "background_color",text="背景")
         if scene.high_model_material:
-            layout.prop(scene, "high_model_color",text="高模")
+            col.prop(scene, "high_model_color",text="高模")
         if scene.low_model_material:
-            layout.prop(scene, "low_model_color",text="低模")
+            col.prop(scene, "low_model_color",text="低模")
