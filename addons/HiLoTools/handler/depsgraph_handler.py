@@ -1,19 +1,19 @@
-from typing import Optional
+from typing import Optional, List
 
 import bpy
 from bpy.app.handlers import persistent
 from bpy.types import Object, Scene
 
-from addons.HiLoTools.properties.object_group import get_group_entry
+from addons.HiLoTools.properties.object_group import get_group_entry, ObjectGroup
 from addons.HiLoTools.utils.text_utils import remove_text, show_text_on_object
+
 _ = bpy.app.translations.pgettext
 
 # 定义事件处理器
 last_object_num: int = 0
 handling = False
-last_active_object: Optional[Object] = None
+last_selected_objects: List[Object] = []
 last_object_set = set()
-index_in_edit = -1
 
 
 def is_object_valid(obj):
@@ -80,48 +80,66 @@ def on_object_num_changed(current_objects_set: set):
                 print("auto_del")
 
 
-def on_object_select_changed(current_active_object: Object):
-    """处理物体模式下，所选物体发生变化的事件"""
-
-    if current_active_object:
-        if current_active_object.type != "MESH":
-            return
-        current_active_object.color = (1, 0, 0, 0.5)
-        grp = None
-        if current_active_object.group_uuid:
-            grp, ignore = get_group_entry(current_active_object.group_uuid)
-        if grp:
-            is_low = False
-            if grp.low_model == current_active_object:
-                is_low = True
-            show_text_on_object("{}({})".format(grp.name, _("Low-Poly" if is_low else "High-Poly")),
-                                current_active_object.name)
-        else:
-            show_text_on_object(_("Not in any group"), current_active_object.name, (.9, 0, 0, 0.2))
+def on_object_select_changed(selected_objects: List[Object]):
+    """处理物体模式下，所选物体发生变化的事件
+    如果选择范围仅限于一个组，则显示组名+所选物体
+    如果选择范围多个组、或选择了多个无关物体、不在同一个组中的物体，则什么也不做
+    如果选择了一个组中的低模或者一个组中的高模，则显示组名（高/低模）+所选物体"""
+    if not selected_objects:
         return
+    selected_group = None
+    selection_have_low: bool = False
+    selection_have_high: bool = False
+    mixed_selection: bool = False
+    display_object = None
+    for selected_object in selected_objects:
+        if selected_object.type != "MESH":
+            continue
+        selected_object.color = (1, 0, 0, 0.5)
+        grp = None
+        if selected_object.group_uuid:
+            grp, index = get_group_entry(selected_object.group_uuid)
+        if grp:
+            if selected_group is None:
+                selected_group = grp
+            elif selected_group != grp:
+                # 选择了多个组 结束
+                mixed_selection = True
+                break
+            if grp.low_model == selected_object:
+                selection_have_low = True
+            else:
+                selection_have_high = True
+        else:
+            if len(selected_objects) > 1:
+                # 选择了多个不在同一个组内的物体 结束
+                mixed_selection = True
+                break
+            else:
+                display_object = selected_object
+    # 在显示之前，先清除内容
     remove_text(force=True)
-
-
-def update_group_index(scene: Scene):
-    """处理编辑模式下，组索引更新"""
-    global index_in_edit
-    active_object = bpy.context.object
-    if active_object.group_uuid:
-        _, index = get_group_entry(active_object.group_uuid)
-        if index is not None:
-            index_in_edit = index
-            scene.object_groups_index = index
-            return
-    index_in_edit = -2
+    if mixed_selection:
+        return
+    if display_object is not None:
+        show_text_on_object(_("Not in any group"), display_object.name, (.9, 0, 0, 0.2))
+        return
+    name_str = ",".join([o.name for o in selected_objects])
+    if selection_have_low and selection_have_high:
+        show_text_on_object("{}".format(selected_group.name), name_str)
+    elif selection_have_low:
+        # 只可能有一个低模
+        show_text_on_object("{}({})".format(selected_group.name, _("Low-Poly")),
+                            selected_objects[0].name)
+    elif selection_have_high:
+        show_text_on_object("{}({})".format(selected_group.name, _("High-Poly")),
+                            name_str)
+    return
 
 
 @persistent
 def depsgraph_handler(scene: Scene):
-    global index_in_edit, last_object_set, last_object_num, last_active_object, handling
-    if bpy.context.mode == 'EDIT_MESH' and index_in_edit != -1:
-        update_group_index(scene)
-    else:
-        index_in_edit = -1
+    global last_object_set, last_object_num, last_selected_objects, handling
     # 只在物体模式下才能执行如下逻辑
     if bpy.context.mode != "OBJECT":
         return
@@ -130,8 +148,9 @@ def depsgraph_handler(scene: Scene):
     handling = True
     # 首先检查所选是否发生变化
     # 最大化的减少耗时函数的执行次数（因为当移动物体时，此函数会每帧执行）
-    current_active_object = bpy.context.selected_objects[0] if bpy.context.selected_objects else None
-    if last_active_object != current_active_object:
+    selected_objects = bpy.context.selected_objects
+    current_selected_objects = selected_objects
+    if last_selected_objects != current_selected_objects:
         current_object_num = len(scene.objects)
         if current_object_num != last_object_num:
             current_object_set = set(scene.objects)
@@ -140,9 +159,9 @@ def depsgraph_handler(scene: Scene):
             last_object_num = current_object_num
             last_object_set = current_object_set
         else:
-            on_object_select_changed(current_active_object)
-        last_active_object = current_active_object
-    elif current_active_object is None:
+            on_object_select_changed(selected_objects)
+        last_selected_objects = current_selected_objects
+    elif current_selected_objects is None:
         operators = bpy.context.window_manager.operators
         if operators and operators[-1].name == 'Delete':
             # 检查是否存在空数据

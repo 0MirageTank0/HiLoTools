@@ -1,12 +1,13 @@
 import bpy
 
 from addons.HiLoTools.operators.view_ops import OBJECT_OT_solo_group, OBJECT_OT_local_view_group
+from addons.HiLoTools.properties.object_group import ObjectGroup
 
 
 class OBJECT_UL_object_groups(bpy.types.UIList):
 
     def draw_item(self, context, layout, data, item, icon, active_data, active_property, index=0, flt_flag=0, ):
-        obj_group = item
+        obj_group: ObjectGroup = item
         scene = context.scene
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             row = layout.row()

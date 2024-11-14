@@ -32,9 +32,12 @@ class MATRIAL_OT_create_default_material(Operator):
     bl_description = "Create Default Material"
     bl_options = {'REGISTER', 'UNDO'}
 
-    background: BoolProperty(name="Background Material", description="Add Background Material", default=True)
-    high_model: BoolProperty(name="High-Poly Material", description="Add High-Poly Material", default=True)
-    low_model: BoolProperty(name="Low-Poly Material", description="Add Low-Poly Material", default=True)
+    background: BoolProperty(name="Background Material",
+                             description="Add Background Material", default=True, options={'SKIP_SAVE'})
+    high_model: BoolProperty(name="High-Poly Material",
+                             description="Add High-Poly Material", default=True, options={'SKIP_SAVE'})
+    low_model: BoolProperty(name="Low-Poly Material",
+                            description="Add Low-Poly Material", default=True, options={'SKIP_SAVE'})
 
     @classmethod
     def poll(cls, context: Context):
@@ -52,5 +55,5 @@ class MATRIAL_OT_create_default_material(Operator):
         if self.low_model and not scene.low_model_material:
             scene.low_model_material = create_material('_low_model_material', (1, 1, 1, 0.1))
             scene.low_model_color = scene.low_model_material.diffuse_color
-
+        scene.object_groups_index = scene.object_groups_index
         return {'FINISHED'}

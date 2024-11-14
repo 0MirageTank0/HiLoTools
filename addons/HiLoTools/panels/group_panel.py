@@ -69,9 +69,11 @@ class VIEW3D_PT_ObjectGroupsPanel(bpy.types.Panel):
             if 0 <= scene.object_groups_index < len(scene.object_groups):
                 obj_group: ObjectGroup = scene.object_groups[scene.object_groups_index]
                 col = layout.column()
-                row = col.row(align=True)
-                row.label(text=obj_group.name)
-                row.operator(operator=OBJECT_OT_rename_group.bl_idname).group_uuid = obj_group.uuid
+                row = col.row()
+                row.label(text=obj_group.name, translate=False)
+                row = row.row()
+                row.alignment = 'RIGHT'
+                row.operator(operator=OBJECT_OT_rename_group.bl_idname, icon='GREASEPENCIL').group_uuid = obj_group.uuid
         elif context.mode == 'EDIT_MESH':
             # 显示物体组列表
             col = layout.column()
@@ -92,6 +94,11 @@ class VIEW3D_PT_ObjectGroupsPanel(bpy.types.Panel):
     def draw_header_preset(self, context):
         layout = self.layout
         scene = context.scene
+        if scene.x_ray and (not scene.high_model_material or not scene.low_model_material):
+            row = layout.row()
+            row.alert = True
+            op = row.operator(MATRIAL_OT_create_default_material.bl_idname)
+            op.background = False
         layout.prop(scene, 'x_ray')
 
 
@@ -168,8 +175,10 @@ class VIEW3D_PT_HighListPanel(bpy.types.Panel):
         for (index, sub_item) in enumerate(obj_group.high_models):
             row = col.row(align=True)
             draw_in_group_model_button(row, sub_item.high_model)
-
-        layout.operator(OBJECT_OT_add_object_to_group.bl_idname, text="Add New High-Poly", icon='ADD')
+        # layout.alignment = 'RIGHT'
+        row = layout.row()
+        row.alignment = 'RIGHT'
+        row.operator(OBJECT_OT_add_object_to_group.bl_idname, text="Add New High-Poly", icon='ADD')
 
     def draw_header(self, context):
         layout = self.layout

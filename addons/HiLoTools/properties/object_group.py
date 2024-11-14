@@ -28,7 +28,7 @@ class ObjectGroup(bpy.types.PropertyGroup):
 
     name: StringProperty(default="No Name")
     uuid: StringProperty()
-    is_active: BoolProperty(name="Active", default=False, update=update_active_object)
+    is_active: BoolProperty(name="Active", default=True, update=update_active_object)
     is_visible: BoolProperty(name="Visible", default=True, update=update_visible_object)
     model_name: StringProperty(name="Mesh Name", default="No Name")
     low_model: PointerProperty(type=Object, poll=mesh_object_poll,

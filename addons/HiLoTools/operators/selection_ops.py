@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 
 import bpy
 from bpy.props import EnumProperty, BoolProperty, StringProperty, IntProperty
@@ -37,11 +37,13 @@ class OBJECT_OT_select_group(Operator):
             if self.clear_selection:
                 bpy.ops.object.select_all(action='DESELECT')
             if self.select_high:
+                print(f"{self.select_high=}")
                 for item in grp.high_models:
                     if item.high_model:
                         item.high_model.select_set(not self.deselect)
                         context.view_layer.objects.active = item.high_model
             if self.select_low and grp.low_model:
+                print(f"{self.select_low=}")
                 grp.low_model.select_set(not self.deselect)
                 context.view_layer.objects.active = grp.low_model
         else:
@@ -68,31 +70,34 @@ class OBJECT_OT_switch_group_selection(Operator):
         return True
 
     def execute(self, context: Context):
-        active_obj: Object = context.active_object
+        selected_objects: List[Object] = \
+            [obj for obj in context.selected_objects if obj.type == 'MESH' and obj.group_uuid]
         edit_switch: bool = False
 
         if context.mode == 'EDIT_MESH':
             edit_switch = True
             bpy.ops.object.mode_set(mode='OBJECT')
 
-        if not active_obj:
+        if not selected_objects:
             return {'CANCELLED'}
 
-        if not active_obj.group_uuid:
-            self.report({'WARNING'}, "This object does not belong to any group")
+        group_index_list: List[int] = []
+        for selected_object in selected_objects:
+            _, group_index = get_group_entry(selected_object.group_uuid)
+            if group_index >= 0:
+                group_index_list.append(group_index)
+
+        if not group_index_list:
             return {'CANCELLED'}
 
-        _, group_index = get_group_entry(active_obj.group_uuid)
-        if group_index < 0:
-            self.report({'WARNING'}, "Expired UUID")
-            return {'CANCELLED'}
-
-        bpy.ops.object.select_all(action='DESELECT')
         select_low = self.selection == 'LOW'
         select_high = self.selection == 'HIGH'
         if self.selection == 'ALL':
             select_high = select_low = True
-        bpy.ops.object.select_group(group_index=group_index, select_low=select_low, select_high=select_high)
+        bpy.ops.object.select_all(action='DESELECT')
+        for group_index in group_index_list:
+            bpy.ops.object.select_group(group_index=group_index, select_low=select_low,
+                                        select_high=select_high, clear_selection=False)
 
         if edit_switch:
             bpy.ops.object.mode_set(mode='EDIT')
@@ -129,9 +134,8 @@ class OBJECT_OT_hover_select(Operator):
                     _, index = get_group_entry(obj.group_uuid)
                     self.current_group_uuid = obj.group_uuid
                     if index >= 0:
-                        print(index)
                         scene.object_groups_index = index
-            else:
+            elif self.current_group_uuid:
                 # 鼠标移出物体范围时取消选择
                 bpy.ops.object.select_all(action='DESELECT')
                 self.current_group_uuid = ""

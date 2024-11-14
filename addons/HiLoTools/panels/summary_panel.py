@@ -69,11 +69,13 @@ class VIEW3D_PT_SummaryPanel(bpy.types.Panel):
                 row = low_area.row()
                 if grp.low_model:
                     l_name = grp.low_model.name
-                    name_area = row.row()
-                    name_area.alert = grp.completion_status != 'Finished'
-                    name_area.label(text=l_name, translate=False)
+                    alert = grp.completion_status != 'Finished'
+                    row.alert = alert
+                    row.label(text=l_name, translate=False)
+                    row.alert = False
                     row.prop(grp, 'completion_status', text="",
-                             icon='ERROR' if name_area.alert else 'CHECKMARK', emboss=False)
+                             icon='ERROR' if grp.completion_status == 'Pending' else
+                             'MOD_REMESH' if grp.completion_status == 'Ongoing' else 'CHECKMARK', emboss=False)
                     row.operator(OBJECT_OT_select_object.bl_idname,
                                  text="", icon='RESTRICT_SELECT_OFF', translate=False).object_name = l_name
                 else:
