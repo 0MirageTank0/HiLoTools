@@ -1,10 +1,5 @@
-from typing import List
-
 import bpy
-from bpy.types import Object, Context, Scene
-
-from addons.HiLoTools.utils.material_utils import clear_object_material, apply_material_to_object
-from addons.HiLoTools.properties.object_group import ObjectGroup
+from bpy.types import Context
 
 
 def update_background_color(self, context: Context):
@@ -31,18 +26,18 @@ def update_select_group_index(self, context: Context):
     # 在其他更新回调事件中会调用此事件，因此需要确保index合法
     if index < 0 or index >= len(scene.object_groups):
         return
-    scene.active_group_uuid = scene.object_groups[index].uuid
     scene.selected_high_model = None
     # 首先处理显示模式的逻辑
-    if scene.display_mode == "transparent":
-        bpy.ops.object.solo_group(group_index=index, influence_ungrouped=scene.transparent_ungrouped)
-    elif scene.display_mode == "focus":
+    if scene.display_mode == 'transparent':
+        if scene.background_material:
+            bpy.ops.object.solo_group(group_index=index, influence_ungrouped=scene.transparent_ungrouped)
+    elif scene.display_mode == 'focus':
         bpy.ops.object.local_view_group(group_index=index)
     # x_ray需要在其后进行处理
     if scene.x_ray:
         # 如果当前处于transparent模式，则不能清除材质。
         bpy.ops.object.x_ray_group(group_index=index,
-                                   clear_others_material=scene.display_mode != "transparent")
+                                   clear_others_material=scene.display_mode != 'transparent')
     # 最终处理物体选择逻辑
     bpy.ops.object.select_group(group_index=index, select_low=True, select_high=True)
 
@@ -50,9 +45,9 @@ def update_select_group_index(self, context: Context):
 def update_display_mode(self, context: Context):
     scene = context.scene
 
-    if scene.display_mode != "transparent":
+    if scene.display_mode != 'transparent':
         bpy.ops.object.solo_group(exit_solo=True, influence_ungrouped=True)
-    if scene.display_mode != "focus":
+    if scene.display_mode != 'focus':
         bpy.ops.object.local_view_group(exit_local_view=True)
 
     update_select_group_index(self, context)

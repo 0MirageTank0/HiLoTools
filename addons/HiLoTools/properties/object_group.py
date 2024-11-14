@@ -12,7 +12,7 @@ def mesh_object_poll(_, obj: Object):
 
 
 class ObjectSubItem(bpy.types.PropertyGroup):
-    high_model: PointerProperty(name="高模物体", type=Object, poll=mesh_object_poll)
+    high_model: PointerProperty(name="High-Poly", type=Object, poll=mesh_object_poll)
 
 
 class ObjectGroup(bpy.types.PropertyGroup):
@@ -26,19 +26,19 @@ class ObjectGroup(bpy.types.PropertyGroup):
         if self.low_model:
             self.low_model.group_uuid = self.uuid
 
-    name: StringProperty(name="组名", default="No Name")
-    uuid: StringProperty(name="唯一标识")
-    is_active: BoolProperty(name="是否可被选择", default=False, update=update_active_object)
-    is_visible: BoolProperty(name="是否可见", default=True, update=update_visible_object)
-    model_name: StringProperty(name="模型名", default="No Name")
+    name: StringProperty(default="No Name")
+    uuid: StringProperty()
+    is_active: BoolProperty(name="Active", default=False, update=update_active_object)
+    is_visible: BoolProperty(name="Visible", default=True, update=update_visible_object)
+    model_name: StringProperty(name="Mesh Name", default="No Name")
     low_model: PointerProperty(type=Object, poll=mesh_object_poll,
                                update=update_low_model)
-    completion_status: EnumProperty(name="完成状态", items=[
-        ("pending", "pending", "还没开始"),
-        ("ongoing", "ongoing", "正在制作中"),
-        ("finished", "finished", "已完成"),
+    completion_status: EnumProperty(name="Progress", items=[
+        ('Pending', "Pending", "The production of low-poly has not yet begun"),
+        ('Ongoing', "Ongoing", "Low poly is in the process of being made"),
+        ('Finished', "Finished", "The low-poly has been made"),
     ])
-    high_models: CollectionProperty(name="高模物体组", type=ObjectSubItem)  # 存储多个高模物体
+    high_models: CollectionProperty(type=ObjectSubItem)  # 存储多个高模物体
 
 
 def get_group_entry(uuid) -> Tuple[Optional[ObjectGroup], int]:

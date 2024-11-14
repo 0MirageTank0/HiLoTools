@@ -203,7 +203,7 @@ def start_test(init_file, addon_name, enable_watch=True):
 
 
 def execute_blender_script(args, addon_path):
-    process = subprocess.Popen(args, stderr=subprocess.PIPE, text=True)
+    process = subprocess.Popen(args, stderr=subprocess.PIPE, encoding="utf-8", text=True)
     try:
         for line in process.stderr:
             line: str

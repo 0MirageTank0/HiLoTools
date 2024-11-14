@@ -8,7 +8,7 @@ from addons.HiLoTools.utils.material_utils import clear_object_material, clear_g
 
 
 class OBJECT_OT_solo_group(Operator):
-    bl_idname = "object.solo_group"
+    bl_idname = 'object.solo_group'
     bl_label = "Solo Group"
     bl_description = "Solo Group"
     bl_options = {'REGISTER', 'UNDO'}
@@ -16,15 +16,15 @@ class OBJECT_OT_solo_group(Operator):
     group_index: IntProperty(options={'HIDDEN'})
     influence_ungrouped: BoolProperty(options={'HIDDEN'})
     type: EnumProperty(items=[
-        ('TOGGLE', "单独切换", ""),
-        ('DEFAULT', "DEFAULT", "")], default='DEFAULT', options={'HIDDEN'})
+        ('TOGGLE', "", ""),
+        ('DEFAULT', "", "")], default='DEFAULT', options={'HIDDEN'})
     exit_solo: BoolProperty(default=False, options={'HIDDEN'})
 
     @classmethod
     def poll(cls, context):
         scene = context.scene
         if not scene.background_material:
-            cls.poll_message_set("需要初始化北京材质")
+            cls.poll_message_set("To make the semi-transparent work, initialize the background material first")
             return False
         return True
 
@@ -33,7 +33,7 @@ class OBJECT_OT_solo_group(Operator):
         if self.exit_solo:
             if self.influence_ungrouped:
                 for obj in scene.objects:
-                    if obj.type == "MESH":
+                    if obj.type == 'MESH':
                         obj.hide_select = False
                         clear_object_material(obj)
             for index, entry in enumerate(scene.object_groups):
@@ -47,7 +47,7 @@ class OBJECT_OT_solo_group(Operator):
             if self.type == 'DEFAULT':
                 # 处理背景
                 for obj in scene.objects:
-                    if obj.type == "MESH" and not obj.group_uuid:
+                    if obj.type == 'MESH' and not obj.group_uuid:
                         if self.influence_ungrouped:
                             obj.hide_select = True
                             apply_material_to_object(obj, scene.background_material)
@@ -74,21 +74,21 @@ class OBJECT_OT_solo_group(Operator):
 
 
 class OBJECT_OT_local_view_group(Operator):
-    bl_idname = "object.local_view_group"
+    bl_idname = 'object.local_view_group'
     bl_label = "Local View Group"
-    bl_description = "切换到当前物体组的本地视图"
+    bl_description = "Switch to the local view of the current object group"
     bl_options = {'REGISTER', 'UNDO'}
 
     group_index: IntProperty(options={'HIDDEN'})
     type: EnumProperty(items=[
-        ('TOGGLE', "单独切换", ""),
-        ('DEFAULT', "DEFAULT", "")], default='DEFAULT', options={'HIDDEN'})
+        ('TOGGLE', "", ""),
+        ('DEFAULT', "", "")], default='DEFAULT', options={'HIDDEN'})
     exit_local_view: BoolProperty(default=False, options={'HIDDEN'})
 
     @classmethod
     def poll(cls, context):
         if context.mode != 'OBJECT':
-            cls.poll_message_set("只能在物体模式中使用")
+            cls.poll_message_set("Can only be used in Object Mode")
             return False
         return True
 
@@ -126,7 +126,7 @@ class OBJECT_OT_local_view_group(Operator):
                                                 select_low=True, select_high=True,
                                                 deselect=True, clear_selection=False)
                 if not context.selected_objects:
-                    self.report({'WARNING'}, "至少选择一组")
+                    self.report({'WARNING'}, "Please select at least one group")
                 else:
                     bpy.ops.view3d.localview()
 
@@ -134,13 +134,13 @@ class OBJECT_OT_local_view_group(Operator):
 
 
 class OBJECT_OT_x_ray_group(Operator):
-    bl_idname = "object.x_ray_group"
+    bl_idname = 'object.x_ray_group'
     bl_label = "X-Ray Group"
-    bl_description = "切换到物体组的X-Ray模式"
+    bl_description = "Switch to X-Ray mode for the object group"
     bl_options = {'REGISTER', 'UNDO'}
 
     group_index: IntProperty()
-    clear_others_material: BoolProperty(default=False, description="是否需要清除其他组的材质")
+    clear_others_material: BoolProperty(default=False)
     exit_x_ray: BoolProperty(default=False)
 
     # noinspection PyTypeChecker

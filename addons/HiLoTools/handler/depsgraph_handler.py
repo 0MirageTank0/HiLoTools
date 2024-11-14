@@ -1,10 +1,12 @@
-import logging
 from typing import Optional
+
 import bpy
 from bpy.app.handlers import persistent
 from bpy.types import Object, Scene
-from addons.HiLoTools.utils.text_utils import remove_text, show_text_on_object
+
 from addons.HiLoTools.properties.object_group import get_group_entry
+from addons.HiLoTools.utils.text_utils import remove_text, show_text_on_object
+_ = bpy.app.translations.pgettext
 
 # 定义事件处理器
 last_object_num: int = 0
@@ -80,20 +82,22 @@ def on_object_num_changed(current_objects_set: set):
 
 def on_object_select_changed(current_active_object: Object):
     """处理物体模式下，所选物体发生变化的事件"""
+
     if current_active_object:
         if current_active_object.type != "MESH":
             return
         current_active_object.color = (1, 0, 0, 0.5)
         grp = None
         if current_active_object.group_uuid:
-            grp, _ = get_group_entry(current_active_object.group_uuid)
+            grp, ignore = get_group_entry(current_active_object.group_uuid)
         if grp:
             is_low = False
             if grp.low_model == current_active_object:
                 is_low = True
-            show_text_on_object("{}({})".format(grp.name,"低模" if is_low else "高模"), current_active_object.name)
+            show_text_on_object("{}({})".format(grp.name, _("Low-Poly" if is_low else "High-Poly")),
+                                current_active_object.name)
         else:
-            show_text_on_object("不属于任何组", current_active_object.name, (.9, 0, 0, 0.2))
+            show_text_on_object(_("Not in any group"), current_active_object.name, (.9, 0, 0, 0.2))
         return
     remove_text(force=True)
 
@@ -114,7 +118,7 @@ def update_group_index(scene: Scene):
 @persistent
 def depsgraph_handler(scene: Scene):
     global index_in_edit, last_object_set, last_object_num, last_active_object, handling
-    if bpy.context.mode == "EDIT_MESH" and index_in_edit != -1:
+    if bpy.context.mode == 'EDIT_MESH' and index_in_edit != -1:
         update_group_index(scene)
     else:
         index_in_edit = -1
@@ -140,7 +144,7 @@ def depsgraph_handler(scene: Scene):
         last_active_object = current_active_object
     elif current_active_object is None:
         operators = bpy.context.window_manager.operators
-        if operators and operators[-1].name == "Delete":
+        if operators and operators[-1].name == 'Delete':
             # 检查是否存在空数据
             for del_object in scene.objects:
                 if not del_object.users_scene:

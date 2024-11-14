@@ -1,24 +1,25 @@
 import uuid
+import bpy
 from bpy.props import StringProperty, BoolProperty, EnumProperty
 from bpy.types import Operator, Context, Object
 
 from addons.HiLoTools.properties.object_group import ObjectGroup, get_group_entry, add_group_entry, del_group_entry
 from addons.HiLoTools.utils.material_utils import clear_object_material
-
+_ = bpy.app.translations.pgettext
 
 class OBJECT_OT_add_object_group(Operator):
-    bl_idname = "object.add_object_group"
-    bl_label = "添加物体组"
-
-    name: StringProperty(name="组名称", description="名称", default="New Group")
-    mesh_name: StringProperty(name="网格名称", description="网格名称")
+    bl_idname = 'object.add_object_group'
+    bl_label = "Add Object Group"
+    bl_description = "Create a new group with the selected objects as the High-Poly of the new group"
+    name: StringProperty(name="Group Name", description="Name", default="New Group")
+    mesh_name: StringProperty(name="Mesh Name", description="Mesh Name")
 
     @classmethod
     def poll(cls, context):
         for obj in context.selected_objects:
             if obj.type == 'MESH' and not obj.group_uuid:
                 return True
-        cls.poll_message_set("需要选择不处于其他组的高模物体")
+        cls.poll_message_set("Please select high-poly objects not in other groups")
         return False
 
     def execute(self, context: Context):
@@ -40,12 +41,11 @@ class OBJECT_OT_add_object_group(Operator):
                 sub_item = obj_group.high_models.add()
                 sub_item.high_model = sub_obj
                 sub_obj.group_uuid = obj_group.uuid
-                # sub_obj["group"] = obj_group
         if warning_text:
-            self.report({'WARNING'}, "因已添加到其他组，已跳过：" + warning_text)
+            self.report({'WARNING'}, "Skipped due to being in another group:" + warning_text)
         scene.object_groups_index = len(scene.object_groups) - 1
 
-        self.report({'INFO'}, "物体组已添加")
+        self.report({'INFO'}, "Object group added")
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -62,25 +62,25 @@ class OBJECT_OT_add_object_group(Operator):
         selected_mesh_objects = [obj for obj in context.selected_objects if obj.type == 'MESH']
         layout = self.layout
         col = layout.column()
-        col.prop(self, "name")
-        col.prop(self, "mesh_name")
+        col.prop(self, 'name')
+        col.prop(self, 'mesh_name')
         box = col.box()
-        box.label(text="已选择的高模：")
+        box.label(text="Selected high-poly objects:")
         for obj in selected_mesh_objects:
             box.label(text=obj.name, translate=False)
 
 
 class OBJECT_OT_remove_object_group(Operator):
-    bl_idname = "object.remove_object_group"
-    bl_label = "删除物体组"
-
+    bl_idname = 'object.remove_object_group'
+    bl_label = "Delete Object Group"
+    bl_description = "Deletes the selected group (does not delete objects in the group)"
     @classmethod
     def poll(cls, context):
         scene = context.scene
         index = scene.object_groups_index
         valid = 0 <= index < len(scene.object_groups)
         if not valid:
-            cls.poll_message_set("需要选择组")
+            cls.poll_message_set("Please select a group")
         return valid
 
     def execute(self, context: Context):
@@ -89,23 +89,21 @@ class OBJECT_OT_remove_object_group(Operator):
         group: ObjectGroup = scene.object_groups[index]
         if group.low_model:
             group.low_model.group_uuid = ""
-            # del group.low_model["group"]
         for item in group.high_models:
             print(item.high_model, item.high_model.group_uuid)
             if item.high_model:
                 item.high_model.group_uuid = ""
-                # del item.high_model["group"]
         del_group_entry(group)
         scene.object_groups.remove(index)
         scene.object_groups_index = min(index, len(scene.object_groups) - 1)
-        self.report({'INFO'}, "物体组已删除")
+        self.report({'INFO'}, "Object group deleted")
         return {'FINISHED'}
 
 
 class OBJECT_OT_add_object_to_group(Operator):
-    bl_idname = "object.add_object_to_group"
-    bl_label = "添加物体到组"
-    bl_description = "添加物体到当前选中的物体组"
+    bl_idname = 'object.add_object_to_group'
+    bl_label = "Add Object to Group"
+    bl_description = "Add object to the currently selected object group"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context: Context):
@@ -118,7 +116,7 @@ class OBJECT_OT_add_object_to_group(Operator):
                 if selected_high_model.group_uuid:
                     grp, _ = get_group_entry(selected_high_model.group_uuid)
                     if grp:
-                        self.report({'WARNING'}, "物体已存在于组" + grp.name)
+                        self.report({'WARNING'}, "Object already in group" + grp.name)
                         return {'CANCELLED'}
                 high_group = scene.object_groups[index].high_models
                 group = high_group.add()
@@ -128,9 +126,9 @@ class OBJECT_OT_add_object_to_group(Operator):
                 # 重新计算当前的画面(可能位于solo模式)
                 scene.object_groups_index = scene.object_groups_index
                 context.area.tag_redraw()
-                self.report({'INFO'}, "已添加到当前选中的物体组")
+                self.report({'INFO'}, "Added to the currently selected object group")
                 return {'FINISHED'}
-        self.report({'WARNING'}, "请选择高模物体")
+        self.report({'WARNING'}, "Please select a high-poly object")
         return {'CANCELLED'}
 
     def invoke(self, context, event):
@@ -140,13 +138,13 @@ class OBJECT_OT_add_object_to_group(Operator):
     def draw(self, context: Context):
         scene = context.scene
         layout = self.layout
-        layout.prop(scene, "selected_high_model", text="选择高模物体", icon='SHADING_RENDERED')
+        layout.prop(scene, 'selected_high_model', text="Select High-Poly Objects", icon='SHADING_RENDERED')
 
 
 class OBJECT_OT_remove_object_from_group(Operator):
-    bl_idname = "object.remove_object_from_group"
-    bl_label = "从组中删除物体"
-    bl_description = "从当前选中的物体组中删除选中的物体"
+    bl_idname = 'object.remove_object_from_group'
+    bl_label = "Remove Object from Group"
+    bl_description = "Remove selected objects from the currently selected object group"
     bl_options = {'REGISTER', 'UNDO'}
 
     object_name: StringProperty(name="Object Name", options={'HIDDEN'})
@@ -165,9 +163,9 @@ class OBJECT_OT_remove_object_from_group(Operator):
         index = scene.object_groups_index
         group: ObjectGroup = scene.object_groups[index]
 
-        def update_view(obj,split:int = 0):
+        def update_view(ob):
             # 清除材质,用于避免x-ray模式下,被删除的物体没有清除x-ray的材质
-            clear_object_material(obj)
+            clear_object_material(ob)
             # 重新计算当前的画面(可能位于solo模式)
             scene.object_groups_index = scene.object_groups_index
 
@@ -177,7 +175,7 @@ class OBJECT_OT_remove_object_from_group(Operator):
                 group.low_model.group_uuid = ""
                 group.low_model = None
                 update_view(obj)
-                self.report({'INFO'}, "已从物体组中移出")
+                self.report({'INFO'}, "Removed from object group")
                 return {'FINISHED'}
 
             i: int = 0
@@ -187,10 +185,10 @@ class OBJECT_OT_remove_object_from_group(Operator):
                     h.high_model.group_uuid = ""
                     group.high_models.remove(i)
                     update_view(obj)
-                    self.report({'INFO'}, "已从物体组中移出")
+                    self.report({'INFO'}, "Removed from object group")
                     return {'FINISHED'}
                 i += 1
-            self.report({'WARNING'}, "未找到指定的物体")
+            self.report({'WARNING'}, "Object not found")
             return {'CANCELLED'}
         else:
             removed_num: int = 0
@@ -199,33 +197,42 @@ class OBJECT_OT_remove_object_from_group(Operator):
                     group.high_models.remove(i)
                     removed_num += 1
             if removed_num:
-                self.report({'INFO'}, f"清除了{removed_num}个空物体")
+                self.report({'INFO'}, _("Cleared {} empty objects").format(removed_num))
                 return {'FINISHED'}
             else:
-                self.report({'INFO'}, f"未发现存在任何空物体")
+                self.report({'INFO'}, "No empty objects found")
             return {'CANCELLED'}
 
 
 class OBJECT_OT_rename_group(Operator):
-    bl_idname = "object.rename_group"
-    bl_label = "组重命名"
-    bl_description = "对当前组进行重命名并同步更新高低模名称"
-    bl_options = {"REGISTER", "UNDO"}
+    bl_idname = 'object.rename_group'
+    bl_label = "Rename Group"
+    bl_description = "Rename the current group and synchronize high-poly and low-poly names"
+    bl_options = {'REGISTER', 'UNDO'}
 
     def update_display_name(self, _):
         if self.auto_update_name:
             self.new_name = self.new_display_name
 
-    new_display_name: StringProperty(name="新组别名称", description="新显示名称", options={'TEXTEDIT_UPDATE'}
+    new_display_name: StringProperty(name="New Group Name", description="New Display Name", options={'TEXTEDIT_UPDATE'}
                                      , update=update_display_name)
-    new_name: StringProperty(name="网格名称", description="新名称")
-    auto_update_name: BoolProperty(name="自动名称", description="是否自动更新名称", default=False)
-    update_mesh_name: BoolProperty(name="同步网格名称", description="是否同步网格名称", default=True)
-    update_low_model: BoolProperty(name="同步低模名称", description="是否同步低模名称", default=True)
-    update_high_model: BoolProperty(name="同步高模名称", description="是否同步高模名称", default=True)
-    rename_type: EnumProperty(name="重命名类型", description="重命名类型", items=[
-        ("Replace", "替换全部", "完全替换名称"),
-        ("Prefix", "替换前缀", "若模型名称包含旧组名称的前缀，则仅替换前缀。否则在名称前追加新名称"),
+    new_name: StringProperty(name="Mesh Name", description="New Name")
+    auto_update_name: BoolProperty(name="Auto Name",
+                                   description="Automatically synchronizes the grid name to the group name",
+                                   default=False)
+    update_mesh_name: BoolProperty(name="Modify Mesh Name",
+                                   description="Whether to modify the name of the mesh",
+                                   default=True)
+    update_low_model: BoolProperty(name="Synchronize Low-Poly Name",
+                                   description="Synchronize Low-Poly Name",
+                                   default=True)
+    update_high_model: BoolProperty(name="Synchronize High-Poly Name",
+                                    description="Synchronize High-Poly Name",
+                                    default=True)
+    rename_type: EnumProperty(name="Rename Type", description="Rename Type", items=[
+        ('Replace', "Replace All", "Completely Replace Name"),
+        ('Prefix', "Replace Prefix", "If the model name contains the old group name's prefix, only the prefix will be "
+                                     "replaced. Otherwise, the new name will be added in front of the name"),
     ])
     group_uuid: StringProperty()
 
@@ -234,7 +241,7 @@ class OBJECT_OT_rename_group(Operator):
         group, _ = get_group_entry(self.group_uuid)
         print(group)
         if self.new_name == "" or self.new_display_name == "":
-            self.report({'WARNING'}, "无效的新名称")
+            self.report({'WARNING'}, "Invalid New Name")
             return {'CANCELLED'}
 
         if self.update_mesh_name:
@@ -242,14 +249,14 @@ class OBJECT_OT_rename_group(Operator):
             # 重命名低模
             low_model: Object = group.low_model
             if self.update_low_model and low_model:
-                if self.rename_type == "Prefix":
-                    new_name = ""
+                if self.rename_type == 'Prefix':
+                    new_name: str
                     if low_model.name.startswith(old_name):
                         new_name = low_model.name.replace(old_name, self.new_name)
                     else:
                         new_name = self.new_name + low_model.name
                     low_model.name = new_name
-                elif self.rename_type == "Replace":
+                elif self.rename_type == 'Replace':
                     low_model.name = self.new_name + scene.low_suffix
             # 重命名高模
             if self.update_high_model:
@@ -258,14 +265,14 @@ class OBJECT_OT_rename_group(Operator):
                     high_model: Object = item.high_model
                     if not high_model:
                         continue
-                    if self.rename_type == "Prefix":
+                    if self.rename_type == 'Prefix':
                         new_name = ""
                         if high_model.name.startswith(old_name):
                             new_name = high_model.name.replace(old_name, self.new_name)
                         else:
                             new_name = self.new_name + high_model.name
                         high_model.name = new_name
-                    elif self.rename_type == "Replace":
+                    elif self.rename_type == 'Replace':
                         if named_times > 0:
                             high_model.name = self.new_name + "." + str(named_times) + scene.high_suffix
                         else:
@@ -274,7 +281,7 @@ class OBJECT_OT_rename_group(Operator):
             group.model_name = self.new_name
         group.name = self.new_display_name
         context.area.tag_redraw()
-        return {"FINISHED"}
+        return {'FINISHED'}
 
     def invoke(self, context, event):
         scene = context.scene
@@ -288,26 +295,23 @@ class OBJECT_OT_rename_group(Operator):
     def draw(self, context: Context):
         scene = context.scene
         layout = self.layout
-        layout.label(text=self.group_uuid)
-        layout.prop(self, property="new_display_name", icon="GREASEPENCIL")
-        #
-        layout.prop(self, "auto_update_name")
-
+        layout.prop(self, property='new_display_name', icon='GREASEPENCIL')
+        layout.prop(self, 'update_mesh_name')
         box = layout.box()
         row = box.row()
-        row.label(text="网格名称", icon="SHADERFX")
-        row.prop(self, "update_mesh_name")
-        col = box.column()
-        col.enabled = self.update_mesh_name
-        col.prop(self, property="new_name", icon="MESH_DATA")
-        col.prop(self, "rename_type")
-        col.prop(self, "update_low_model")
-        col.prop(self, "update_high_model")
+        row.label(text="Mesh Name", icon='SHADERFX')
+        row.prop(self, 'auto_update_name')
+        col = box.column(align=True)
+        box.enabled = self.update_mesh_name
+        col.prop(self, property='new_name', icon='MESH_DATA')
+        col.prop(self, 'rename_type')
+        col.prop(self, 'update_low_model')
+        col.prop(self, 'update_high_model')
         box = box.box()
-        box.label(text="后缀")
+        box.label(text="Suffix")
         col = box.column()
         col.enabled = self.update_low_model
-        col.prop(scene, "low_suffix", icon="SHADING_WIRE")
+        col.prop(scene, 'low_suffix', icon='SHADING_WIRE')
         col = box.column()
         col.enabled = self.update_high_model
-        col.prop(scene, "high_suffix", icon="SHADING_RENDERED")
+        col.prop(scene, 'high_suffix', icon='SHADING_RENDERED')

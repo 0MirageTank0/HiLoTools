@@ -1,7 +1,6 @@
 import bpy
 
 
-
 def on_load_file(scene: bpy.types.Scene):
     pass
 

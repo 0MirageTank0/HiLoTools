@@ -1,5 +1,5 @@
 import bpy
-from bpy.types import Object, Material, Scene
+from bpy.types import Object, Material
 
 
 def create_material(name, color=(1.0, 0.0, 0.0, 1.0), override=False):

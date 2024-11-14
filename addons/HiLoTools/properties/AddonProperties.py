@@ -13,34 +13,36 @@ addon_properties = {
     bpy.types.Scene: {
         "property_name": StringProperty(name="property_name"),
         "object_groups": CollectionProperty(type=ObjectGroup),
-        "object_groups_index": IntProperty(name="当前选取组索引", update=update_select_group_index),
+        "object_groups_index": IntProperty(name="Current Selected Group Index", update=update_select_group_index),
         "selected_high_model": PointerProperty(type=Object, poll=mesh_object_poll),
-        "show_high_model_panel": BoolProperty(name="显示高模列表", default=False),
-        "display_mode": EnumProperty(name="使能模式",
+        "display_mode": EnumProperty(name="Display Mode",
                                      items=[
-                                         ("default", "默认", "选择活动组"),
-                                         ("focus", "聚焦", "切换到组的局部视图"),
-                                         ("transparent", "半透其他", "将无关组透明")
+                                         ('default', "Default", "Default option, no special effect"),
+                                         ('focus', "Focus", "Switch to the local view of the group"),
+                                         ('transparent', "Semi-Transparent", "Make other groups transparent")
                                      ],
                                      update=update_display_mode),
-        "transparent_ungrouped": BoolProperty(name="影响组外物体", description="半透不属于任何组的物体",
+        "transparent_ungrouped": BoolProperty(name="Affects Out-Of-Group",
+                                              description="Translucent: All objects that do not belong to any group",
                                               update=update_transparent_ungrouped),
-        "x_ray": BoolProperty(name="x ray", description="透明高低模", update=update_x_ray),
-        "active_group_uuid": StringProperty(name="当前活跃组", default=""),
-        "low_suffix": StringProperty(name="低模后缀", default="_low"),
-        "high_suffix": StringProperty(name="高模后缀", default="_high"),
-        "background_material": PointerProperty(name="背景材质", type=Material),
-        "background_color": FloatVectorProperty(name="背景颜色", subtype='COLOR', min=0, max=1, size=4,
+        "x_ray": BoolProperty(name="X Ray", description="X-Ray Mode", update=update_x_ray),
+        "low_suffix": StringProperty(name="Low-Poly Mesh Suffix", default="_low"),
+        "high_suffix": StringProperty(name="High-Poly Mesh Suffix", default="_high"),
+        "background_material": PointerProperty(name="Background Material", type=Material),
+        "background_color": FloatVectorProperty(name="Background Color", subtype='COLOR', min=0, max=1, size=4,
                                                 default=(0, 0, 0, 1), update=update_background_color),
-        "high_model_material": PointerProperty(name="高模材质", type=Material),
-        "high_model_color": FloatVectorProperty(name="高模颜色", subtype='COLOR', min=0, max=1, size=4,
+        "high_model_material": PointerProperty(name="High-Poly Material", type=Material),
+        "high_model_color": FloatVectorProperty(name="High-Poly Color", subtype='COLOR', min=0, max=1, size=4,
                                                 default=(0, 0, 0, 1), update=update_high_model_color),
-        "low_model_material": PointerProperty(name="低模材质", type=Material),
-        "low_model_color": FloatVectorProperty(name="低模颜色", subtype='COLOR', min=0, max=1, size=4,
+        "low_model_material": PointerProperty(name="Low-Poly Material", type=Material),
+        "low_model_color": FloatVectorProperty(name="Low-Poly Color", subtype='COLOR', min=0, max=1, size=4,
                                                default=(0, 0, 0, 1), update=update_low_model_color),
 
     },
     bpy.types.Object: {
-        "group_uuid": StringProperty(name="UUID", description="警告：请勿修改此值。此值用于快速确定物体所属，而无需遍历整个组的内容进行匹对。"),
+        "group_uuid": StringProperty(name="UUID",
+                                     description="Warning: Do not modify this value. This value is used to quickly "
+                                                 "determine the object's affiliation without having to iterate "
+                                                 "through the contents of the entire group for matching."),
     }
 }

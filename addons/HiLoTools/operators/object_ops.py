@@ -6,27 +6,27 @@ from addons.HiLoTools.properties.object_group import ObjectGroup
 
 
 class ModifierSetting(bpy.types.PropertyGroup):
-    modifier_name: StringProperty(name="名称")  
-    modifier_type: StringProperty(name="类型")  
-    exclude: BoolProperty(name="是否排除")  
+    modifier_name: StringProperty()
+    modifier_type: StringProperty()
+    exclude: BoolProperty()
 
 
 class OBJECT_OT_generate_low_poly_object(Operator):
-    bl_idname = "object.generate_low_model"
-    bl_label = "生成低模物体"
-    bl_description = "根据高模组成低模物体"
+    bl_idname = 'object.generate_low_model'
+    bl_label = "Generate Low-Poly Object"
+    bl_description = "Generate Low-Poly Object from High-Poly"
     bl_options = {'REGISTER', 'UNDO'}
 
     exclude_type: EnumProperty(
-        name="排除方式",
-        description="按某种方式排除修改器",
+        name="Exclusion Method",
+        description="Exclude Modifiers in a Certain Way",
         items=[
-            ('Name', "修改器名称", "按照名称展示、排除"),
-            ('Type', "修改器类型", "按照类型展示、排除"),
+            ('Name', "Modifier Name", "Exclude by Name"),
+            ('Type', "Modifier Type", "Exclude by Type"),
         ]
     )  
     exclude_modifiers: CollectionProperty(type=ModifierSetting)  
-    low_collection_name: StringProperty(name="低模集合")  
+    low_collection_name: StringProperty(name="Low-Poly Collection")
 
     @classmethod
     def poll(cls, context: Context):
@@ -50,11 +50,11 @@ class OBJECT_OT_generate_low_poly_object(Operator):
         selected_objects = obj_group.high_models
 
         if not selected_objects:
-            self.report({'WARNING'}, "不存在高模物体")
+            self.report({'WARNING'}, "No High-Poly Objects Found")
             return {'CANCELLED'}
 
         # 创建一个新的空网格对象
-        mesh = bpy.data.meshes.new("MergedMesh")
+        mesh = bpy.data.meshes.new('MergedMesh')
         merged_obj = bpy.data.objects.new(obj_group.model_name + scene.low_suffix, mesh)
         context.collection.objects.link(merged_obj)
 
@@ -79,15 +79,6 @@ class OBJECT_OT_generate_low_poly_object(Operator):
                     for modifier in new_obj.modifiers:
                         if modifier.type not in types:
                             bpy.ops.object.modifier_apply(modifier=modifier.name, single_user=True)
-            else:
-                self.report({'WARNING'}, f"Object {obj.name} is not a mesh and will be skipped")
-
-        # 选择合并后的物体
-        # bpy.ops.object.select_all(action='DESELECT')
-        # for obj in new_group:
-        #     obj.select_set(True)
-        # merged_obj.select_set(True)
-        # context.view_layer.objects.active = merged_obj
         new_group.append(merged_obj)
         with context.temp_override(active_object=merged_obj, selected_editable_objects=new_group):
             bpy.ops.object.join()
@@ -95,7 +86,7 @@ class OBJECT_OT_generate_low_poly_object(Operator):
         obj_group.low_model = merged_obj
 
         if self.low_collection_name == "":
-            self.low_collection_name = "LOW"
+            self.low_collection_name = 'LOW'
         low_collection = bpy.data.collections.get(self.low_collection_name)
         if not low_collection:
             low_collection = bpy.data.collections.new(self.low_collection_name)
@@ -107,7 +98,7 @@ class OBJECT_OT_generate_low_poly_object(Operator):
         low_collection.objects.link(merged_obj)
         bpy.ops.object.select_all(action='DESELECT')
         merged_obj.select_set(True)
-        self.report({'INFO'}, "Objects merged successfully")
+        self.report({'INFO'}, "Objects Merged Successfully")
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -130,20 +121,20 @@ class OBJECT_OT_generate_low_poly_object(Operator):
         layout = self.layout
         col = layout.column()
         box = col.box()
-        box.label(text="集合", icon="SHADING_WIRE")
-        box.prop_search(self, "low_collection_name", bpy.data, "collections")
-        box.label(text="为空则自动创建LOW集合")
+        box.label(text="Collection", icon='SHADING_WIRE')
+        box.prop_search(self, 'low_collection_name', bpy.data, 'collections')
+        box.label(text="Create LOW Collection Automatically if Empty")
         col = layout.column()
         box = col.box()
-        box.label(text="排除的修改器", icon="MODIFIER_DATA")
+        box.label(text="Excluded Modifiers", icon='MODIFIER_DATA')
         if len(self.exclude_modifiers) == 0:
-            box.label(text="无修改器")
+            box.label(text="No Modifiers")
         else:
-            box.prop(self, "exclude_type")
+            box.prop(self, 'exclude_type')
             if self.exclude_type == 'Name':
                 for item in self.exclude_modifiers:
                     row = box.row()
-                    row.prop(item, "exclude", text=item.modifier_name, icon="MOD_" + item.modifier_type,
+                    row.prop(item, 'exclude', text=item.modifier_name, icon='MOD_' + item.modifier_type,
                              translate=False)
             elif self.exclude_type == 'Type':
                 types = set()
@@ -151,7 +142,4 @@ class OBJECT_OT_generate_low_poly_object(Operator):
                     if item.modifier_type not in types:
                         types.add(item.modifier_type)
                         row = box.row()
-                        row.prop(item, "exclude", text=item.modifier_type, icon="MOD_" + item.modifier_type)
-                    # 不可修改内容，因为用户可能会再次切换到Name显示
-                    # else:
-                    #     self.exclude_modifiers.remove(index)
+                        row.prop(item, 'exclude', text=item.modifier_type, icon='MOD_' + item.modifier_type)

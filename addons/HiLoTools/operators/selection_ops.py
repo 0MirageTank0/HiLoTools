@@ -9,10 +9,10 @@ from addons.HiLoTools.properties.object_group import ObjectGroup, get_group_entr
 
 
 class OBJECT_OT_select_group(Operator):
-    bl_idname = "object.select_group"
-    bl_label = "选择组"
-    bl_description = "选择组"
-    bl_options = {"REGISTER", 'UNDO'}
+    bl_idname = 'object.select_group'
+    bl_label = "Select Group"
+    bl_description = "Select Group"
+    bl_options = {'REGISTER', 'UNDO'}
 
     group_index: IntProperty()
     select_low: BoolProperty()
@@ -23,7 +23,7 @@ class OBJECT_OT_select_group(Operator):
     @classmethod
     def poll(cls, context):
         if context.mode != 'OBJECT':
-            cls.poll_message_set("只能在物体模式中使用")
+            cls.poll_message_set("Can only be used in Object Mode")
             return False
         return True
 
@@ -50,19 +50,20 @@ class OBJECT_OT_select_group(Operator):
 
 
 class OBJECT_OT_switch_group_selection(Operator):
-    bl_idname = "object.switch_group_selection"
-    bl_label = "组内切换"
-    bl_description = "根据active_object，切换组内物体"
-    bl_options = {"REGISTER", 'UNDO'}
+    bl_idname = 'object.switch_group_selection'
+    bl_label = "Switch within Group"
+    bl_description = "Switch objects within group based on current active item"
+    bl_options = {'REGISTER', 'UNDO'}
 
-    selection: EnumProperty(name="选择范围", description="选择模式",
-                            items=[("ALL", "全部", "选择全部范围"), ("HIGH", "高模", "只选择高模"),
-                                   ("LOW", "低模", "只选择低模")])
+    selection: EnumProperty(name="Selection Range", description="Selection Mode",
+                            items=[('ALL', "All", "Select All"),
+                                   ('HIGH', "High-Poly", "Select Only High-Poly"),
+                                   ('LOW', "Low-Poly", "Select Only Low-Poly")])
 
     @classmethod
     def poll(cls, context):
         if context.mode != 'EDIT_MESH' and context.mode != 'OBJECT':
-            cls.poll_message_set("只能在物体模式、编辑模式中使用")
+            cls.poll_message_set("Can only be used in Object Mode or Edit Mode")
             return False
         return True
 
@@ -75,16 +76,16 @@ class OBJECT_OT_switch_group_selection(Operator):
             bpy.ops.object.mode_set(mode='OBJECT')
 
         if not active_obj:
-            return {"CANCELLED"}
+            return {'CANCELLED'}
 
         if not active_obj.group_uuid:
-            self.report({'WARNING'}, "此物体不属于任何组")
-            return {"CANCELLED"}
+            self.report({'WARNING'}, "This object does not belong to any group")
+            return {'CANCELLED'}
 
         _, group_index = get_group_entry(active_obj.group_uuid)
         if group_index < 0:
-            self.report({'WARNING'}, "过期的UUID")
-            return {"CANCELLED"}
+            self.report({'WARNING'}, "Expired UUID")
+            return {'CANCELLED'}
 
         bpy.ops.object.select_all(action='DESELECT')
         select_low = self.selection == 'LOW'
@@ -96,11 +97,11 @@ class OBJECT_OT_switch_group_selection(Operator):
         if edit_switch:
             bpy.ops.object.mode_set(mode='EDIT')
 
-        return {"FINISHED"}
+        return {'FINISHED'}
 
 
 class OBJECT_OT_hover_select(Operator):
-    bl_idname = "object.hover_select"
+    bl_idname = 'object.hover_select'
     bl_label = "Hover Select with Alt Key"
     bl_description = "Select object under mouse while Alt is pressed"
     bl_options = {'REGISTER', 'UNDO'}
@@ -161,8 +162,8 @@ class OBJECT_OT_hover_select(Operator):
 
 
 class OBJECT_OT_select_object(Operator):
-    bl_idname = "object.select_object"
-    bl_label = "选择物体"
+    bl_idname = 'object.select_object'
+    bl_label = "Select Object"
     bl_options = {'REGISTER', 'UNDO'}
 
     object_name: bpy.props.StringProperty(name="Object Name", options={'HIDDEN'})
@@ -170,7 +171,7 @@ class OBJECT_OT_select_object(Operator):
     @classmethod
     def poll(cls, context):
         if context.mode != 'OBJECT':
-            cls.poll_message_set("只能在物体模式中使用")
+            cls.poll_message_set("Can only be used in Object Mode")
             return False
         return True
 
@@ -183,45 +184,43 @@ class OBJECT_OT_select_object(Operator):
                 obj.select_set(True)
                 context.view_layer.objects.active = obj
             else:
-                self.report({'WARNING'}, f"{self.object_name} 物体存在，但 不在当前场景中")
+                self.report({'WARNING'}, "{} object exists, but not in the current scene".format(self.object_name))
         else:
-            self.report({'WARNING'}, f"未找到物体 {self.object_name}")
+            self.report({'WARNING'}, "Object {} not found".format(self.object_name))
         return {'FINISHED'}
 
 
 class OBJECT_OT_select_all_group(Operator):
-    bl_idname = "object.select_all_group"
-    bl_label = "全选组"
-    bl_description = "全选所有组物体"
-    bl_options = {"REGISTER", "UNDO"}
+    bl_idname = 'object.select_all_group'
+    bl_label = "Select All Groups"
+    bl_description = "Select all objects in all groups"
+    bl_options = {'REGISTER', 'UNDO'}
 
-    select_range: EnumProperty(name="Range", items=[
-        ("ALL", "全部", "选择全部"),
-        ("HIGH", "高模", "只选择高模"),
-        ("LOW", "低模", "只选择低模"),
-    ])
+    select_range: EnumProperty(name="Selection Range", description="Selection Mode",
+                               items=[('ALL', "All", "Select All"),
+                                      ('HIGH', "High-Poly", "Select Only High-Poly"),
+                                      ('LOW', "Low-Poly", "Select Only Low-Poly")])
     clear_selection: BoolProperty(name="Clear Selection", default=True)
-
 
     @classmethod
     def poll(cls, context):
         scene = context.scene
         if context.mode != 'OBJECT':
-            cls.poll_message_set("只能在物体模式中使用")
+            cls.poll_message_set("Can only be used in Object Mode")
             return False
         return bool(scene.object_groups)
 
     def execute(self, context):
         scene = context.scene
-        select_low: bool = self.select_range == "LOW"
-        select_high: bool = self.select_range == "HIGH"
-        if self.select_range == "ALL":
+        select_low: bool = self.select_range == 'LOW'
+        select_high: bool = self.select_range == 'HIGH'
+        if self.select_range == 'ALL':
             select_low = select_high = True
         if self.clear_selection:
             bpy.ops.object.select_all(action='DESELECT')
         for index in range(len(scene.object_groups)):
             bpy.ops.object.select_group(group_index=index,
-                                        select_low=select_low, 
+                                        select_low=select_low,
                                         select_high=select_high,
                                         clear_selection=False)
 
@@ -229,17 +228,17 @@ class OBJECT_OT_select_all_group(Operator):
 
 
 class OBJECT_OT_select_ungrouped_objects(Operator):
-    bl_idname = "object.select_ungrouped_objects"
-    bl_label = "选择未分组对象"
-    bl_description = "选择未分组的对象"
-    bl_options = {"REGISTER", "UNDO"}
+    bl_idname = 'object.select_ungrouped_objects'
+    bl_label = "Select Ungrouped Objects"
+    bl_description = "Select objects not in any group"
+    bl_options = {'REGISTER', 'UNDO'}
 
     clear_selection: BoolProperty(name="Clear Selection", default=True)
 
     @classmethod
     def poll(cls, context):
         if context.mode != 'OBJECT':
-            cls.poll_message_set("只能在物体模式中使用")
+            cls.poll_message_set("Can only be used in Object Mode")
             return False
         return True
 
@@ -250,7 +249,7 @@ class OBJECT_OT_select_ungrouped_objects(Operator):
             bpy.ops.object.select_all(action='DESELECT')
 
         for obj in scene.objects:
-            if obj.type == "MESH" and not obj.group_uuid:
+            if obj.type == 'MESH' and not obj.group_uuid:
                 obj.select_set(True)
 
         return {'FINISHED'}

@@ -6,27 +6,28 @@ from addons.HiLoTools.operators.material_ops import MATRIAL_OT_create_default_ma
 
 
 class VIEW3D_PT_MaterialPanel(bpy.types.Panel):
-    bl_label = "材质"
-    bl_category = "物体组管理"
-    bl_space_type = "VIEW_3D"
-    bl_region_type = "UI"
-    bl_options = {"DEFAULT_CLOSED"}
+    bl_label = "Material"
+    bl_category = "HiLoTool"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_options = {'DEFAULT_CLOSED'}
     bl_order = 2
 
     def draw(self, context: Context):
         layout = self.layout
         scene = context.scene
         row = layout.row()
-        row.operator(MATRIAL_OT_create_default_material.bl_idname, text="创建默认材质")
-        row.operator(MATRIAL_OT_restore_default_material.bl_idname, icon="FILE_REFRESH", text="")
+        row.operator(MATRIAL_OT_create_default_material.bl_idname)
+        row.operator(MATRIAL_OT_restore_default_material.bl_idname, icon='FILE_REFRESH', text="")
         col = layout.column(align=True)
-        col.prop(scene, "background_material",text="背景材质")
-        col.prop(scene, "high_model_material",text="高模材质")
-        col.prop(scene, "low_model_material",text="低模材质")
+        col.prop(scene, 'background_material', text="Background Material")
+        col.prop(scene, 'high_model_material', text="High-Poly Material")
+        col.prop(scene, 'low_model_material', text="Low-Poly Material")
         col.separator()
         if scene.background_material:
-            col.prop(scene, "background_color",text="背景")
+            col.prop(scene, 'background_color', text="Background Color", text_ctxt="hl")
         if scene.high_model_material:
-            col.prop(scene, "high_model_color",text="高模")
+            col.prop(scene, 'high_model_color', text="High-Poly Color")
         if scene.low_model_material:
-            col.prop(scene, "low_model_color",text="低模")
+            col.prop(scene, 'low_model_color', text="Low-Poly Color")
+            

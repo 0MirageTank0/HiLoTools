@@ -16,7 +16,7 @@ class ExampleAddonPreferences(AddonPreferences):
     # 当类被注册时，即我们需要重新启动 Blender 才能正确翻译属性名称。
     filepath: StringProperty(
         name="Resource Folder",
-        default=os.path.join(os.path.expanduser("~"), "Documents", __addon_name__),
+        default=os.path.join(os.path.expanduser('~'), 'Documents', __addon_name__),
         subtype='DIR_PATH',
     )
     number: IntProperty(
@@ -31,6 +31,6 @@ class ExampleAddonPreferences(AddonPreferences):
     def draw(self, context: bpy.types.Context):
         layout = self.layout
         layout.label(text="Add-on Preferences View")
-        layout.prop(self, "filepath")
-        layout.prop(self, "number")
-        layout.prop(self, "boolean")
+        layout.prop(self, 'filepath')
+        layout.prop(self, 'number')
+        layout.prop(self, 'boolean')
