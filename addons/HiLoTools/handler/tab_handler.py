@@ -1,4 +1,5 @@
 import bpy
+from bpy.app.handlers import persistent
 from bpy.types import Object
 
 from addons.HiLoTools.properties.object_group import get_group_entry
@@ -6,6 +7,7 @@ from addons.HiLoTools.properties.object_group import get_group_entry
 handling: bool = False
 
 
+@persistent
 def mode_change_callback():
     """
     处理进入编辑模式的逻辑:

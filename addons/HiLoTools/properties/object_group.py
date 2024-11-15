@@ -33,6 +33,8 @@ class ObjectGroup(bpy.types.PropertyGroup):
     uuid: StringProperty()
     is_active: BoolProperty(name="Active", default=True, update=update_active_object)
     is_visible: BoolProperty(name="Visible", default=True, update=update_visible_object)
+    in_background_material: BoolProperty(default=False)
+    in_x_ray_material: BoolProperty(default=False)
     model_name: StringProperty(name="Mesh Name", default="No Name")
     low_model: PointerProperty(type=Object, poll=mesh_object_poll,
                                update=update_low_model)
@@ -44,17 +46,40 @@ class ObjectGroup(bpy.types.PropertyGroup):
     high_models: CollectionProperty(type=ObjectSubItem)  # 存储多个高模物体
 
 
-def get_group_entry(uuid) -> Tuple[Optional[ObjectGroup], int]:
-    # entry : ObjectGroup
+group_cache: dict = {}
+
+
+def init_group_dict():
+    group_cache.clear()
     for (index, entry) in enumerate(bpy.context.scene.object_groups):
-        if entry.uuid == uuid:
-            return entry, index
+        group_cache[entry.uuid] = index
+
+
+# def get_group_entry(uuid) -> Tuple[Optional[ObjectGroup], int]:
+#     # entry : ObjectGroup
+#     group_cache.get(uuid)
+#     for (index, entry) in enumerate(bpy.context.scene.object_groups):
+#         if entry.uuid == uuid:
+#             return entry, index
+#     return None, -1
+
+
+def get_group_index(uuid) -> int:
+    return group_cache.get(uuid, -1)
+
+
+def get_group_entry(uuid) -> Tuple[Optional[ObjectGroup], int]:
+    index = get_group_index(uuid)
+    if index != -1:
+        return bpy.context.scene.object_groups[index], index
     return None, -1
 
 
 def add_group_entry(group: ObjectGroup):
+    group_cache[group.uuid] = len(bpy.context.scene.object_groups) - 1
     return
 
 
 def del_group_entry(uuid):
+    init_group_dict()
     return

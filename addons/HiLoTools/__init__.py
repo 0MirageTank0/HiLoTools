@@ -2,6 +2,7 @@ import bpy
 
 from addons.HiLoTools.config import __addon_name__
 from addons.HiLoTools.handler.depsgraph_handler import depsgraph_register, depsgraph_unregister
+from addons.HiLoTools.handler.load_handler import load_register, load_unregister
 from addons.HiLoTools.handler.tab_handler import tab_register, tab_unregister
 from addons.HiLoTools.i18n.dictionary import dictionary
 from addons.HiLoTools.operators.selection_ops import OBJECT_OT_switch_group_selection, OBJECT_OT_hover_select
@@ -72,6 +73,7 @@ def register():
 
     key_register()
     tab_register()
+    load_register()
     depsgraph_register()
     print("{} addon is installed.".format(bl_info["name"]))
 
@@ -84,5 +86,6 @@ def unregister():
     remove_properties(addon_properties)
     key_unregister()
     tab_unregister()
+    load_unregister()
     depsgraph_unregister()
     print("{} addon is uninstalled.".format(bl_info["name"]))

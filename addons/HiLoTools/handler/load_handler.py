@@ -1,8 +1,12 @@
 import bpy
+from bpy.app.handlers import persistent
+
+from addons.HiLoTools.properties.object_group import init_group_dict
 
 
+@persistent
 def on_load_file(scene: bpy.types.Scene):
-    pass
+    init_group_dict()
 
 
 def load_register():

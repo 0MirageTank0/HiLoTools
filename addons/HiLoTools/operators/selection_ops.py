@@ -50,7 +50,6 @@ class OBJECT_OT_select_group(Operator):
                 for item in grp.high_models:
                     if item.high_model:
                         item.high_model.select_set(not self.deselect)
-                        context.view_layer.objects.active = item.high_model
             if self.select_low and grp.low_model:
                 grp.low_model.select_set(not self.deselect)
                 context.view_layer.objects.active = grp.low_model
@@ -167,8 +166,8 @@ class OBJECT_OT_hover_select(Operator):
             # 如果指向新物体，更新选择状态
             if obj and obj.group_uuid:
                 if self.current_group_uuid != obj.group_uuid:
-                    _, index = get_group_entry(obj.group_uuid)
                     self.current_group_uuid = obj.group_uuid
+                    _, index = get_group_entry(obj.group_uuid)
                     if index >= 0:
                         scene.object_groups_index = index
             elif self.current_group_uuid:

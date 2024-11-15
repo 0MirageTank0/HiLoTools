@@ -37,7 +37,6 @@ addon_properties = {
         "low_model_material": PointerProperty(name="Low-Poly Material", type=Material),
         "low_model_color": FloatVectorProperty(name="Low-Poly Color", subtype='COLOR', min=0, max=1, size=4,
                                                default=(0, 0, 0, 1), update=update_low_model_color),
-
     },
     bpy.types.Object: {
         "group_uuid": StringProperty(name="UUID",

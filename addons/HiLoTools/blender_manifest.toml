@@ -5,7 +5,7 @@ schema_version = "1.0.0"
 # id must be the same as the directory name, and must be unique
 id = "HiLoTools"
 version = "0.0.1"
-name = "Basic Add-on Sample"
+name = "High-Low-Poly Manager"
 tagline = "This is another extension"
 maintainer = "Developer name <email@address.com>"
 # Supported types: "add-on", "theme"

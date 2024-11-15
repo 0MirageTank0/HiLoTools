@@ -14,6 +14,9 @@ from addons.HiLoTools.utils.material_utils import clear_object_material, clear_g
 计划的优化方向是为组添加额外的参数用于标定状态,记录旧材质.从而实现保留原始材质
 """
 
+is_dirty_background: bool = True
+
+
 class OBJECT_OT_solo_group(Operator):
     """
     根据组的index,对其他组应用半透效果
@@ -47,42 +50,52 @@ class OBJECT_OT_solo_group(Operator):
         return True
 
     def execute(self, context: Context):
+        global is_dirty_background
         scene = context.scene
         if self.exit_solo:
             if self.influence_ungrouped:
                 for obj in scene.objects:
-                    if obj.type == 'MESH':
+                    if obj.type == 'MESH' and not obj.group_uuid:
                         obj.hide_select = False
                         clear_object_material(obj)
             for index, entry in enumerate(scene.object_groups):
                 entry: ObjectGroup
-                entry.is_active = True
-                clear_group_material(entry)
+                if entry.in_background_material:
+                    entry.in_background_material = False
+                    entry.in_x_ray_material = False
+                    entry.is_active = True
+                    clear_group_material(entry)
+
+            is_dirty_background = True
         else:
             if self.group_index < 0 or self.group_index >= len(scene.object_groups):
                 self.report({'ERROR'}, "Invalid Group Index")
                 return {'CANCELLED'}
             if self.type == 'DEFAULT':
                 # 处理背景
-                for obj in scene.objects:
-                    if obj.type == 'MESH' and not obj.group_uuid:
-                        if self.influence_ungrouped:
+                if self.influence_ungrouped and is_dirty_background:
+                    for obj in scene.objects:
+                        if obj.type == 'MESH' and not obj.group_uuid:
                             obj.hide_select = True
                             apply_material_to_object(obj, scene.background_material)
-                        else:
-                            obj.hide_select = False
-                            clear_object_material(obj)
+                    is_dirty_background = False
                 for index, entry in enumerate(scene.object_groups):
                     entry: ObjectGroup
                     if index == self.group_index:
-                        entry.is_active = True
-                        clear_group_material(entry)
+                        if entry.in_background_material:
+                            entry.in_background_material = False
+                            entry.in_x_ray_material = False
+                            entry.is_active = True
+                            clear_group_material(entry)
                     else:
-                        entry.is_active = False
-                        apply_material_to_group(entry, scene.background_material)
+                        if not entry.in_background_material:
+                            entry.in_background_material = True
+                            entry.is_active = False
+                            apply_material_to_group(entry, scene.background_material)
             elif self.type == 'TOGGLE':
                 grp: ObjectGroup = scene.object_groups[self.group_index]
                 grp.is_active = not grp.is_active
+                grp.in_background_material = not grp.in_background_material
                 if grp.is_active:
                     clear_group_material(grp)
                 else:
@@ -194,12 +207,20 @@ class OBJECT_OT_x_ray_group(Operator):
             grp = scene.object_groups[self.group_index]
         if self.clear_others_material:
             for index, group in enumerate(scene.object_groups):
+                group: ObjectGroup
                 if index != self.group_index:
-                    clear_group_material(group)
+                    if group.in_x_ray_material:
+                        clear_group_material(group)
+                        group.in_x_ray_material = False
+                        group.in_background_material = False
                 else:
-                    apply_material_to_group_high_model(grp, scene.high_model_material)
-                    apply_material_to_group_low_model(grp, scene.low_model_material)
+                    if not group.in_x_ray_material:
+                        apply_material_to_group_high_model(grp, scene.high_model_material)
+                        apply_material_to_group_low_model(grp, scene.low_model_material)
+                        group.in_x_ray_material = True
         else:
-            apply_material_to_group_high_model(grp, scene.high_model_material)
-            apply_material_to_group_low_model(grp, scene.low_model_material)
+            if not grp.in_x_ray_material:
+                apply_material_to_group_high_model(grp, scene.high_model_material)
+                apply_material_to_group_low_model(grp, scene.low_model_material)
+                grp.in_x_ray_material = True
         return {'FINISHED'}
