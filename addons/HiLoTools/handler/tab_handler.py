@@ -7,6 +7,11 @@ handling: bool = False
 
 
 def mode_change_callback():
+    """
+    处理进入编辑模式的逻辑:
+    如果是一个组中的高模与低模,则自动的切换到低模的编辑模式.
+    因为同时编辑高模低模通常没有意义
+    """
     global handling
     if handling:
         return
@@ -15,7 +20,9 @@ def mode_change_callback():
         context = bpy.context
         scene = context.scene
         selected_objects = context.selected_objects
-        # selected_objects一定大于等于1
+        if not selected_objects:
+            handling = False
+            return
         group_uuid: str = selected_objects[0].group_uuid
         if len(selected_objects) == 1:
             # 只选择了一个物体 自动更新index

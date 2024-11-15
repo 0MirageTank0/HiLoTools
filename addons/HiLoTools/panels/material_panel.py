@@ -6,6 +6,9 @@ from addons.HiLoTools.operators.material_ops import MATRIAL_OT_create_default_ma
 
 
 class VIEW3D_PT_MaterialPanel(bpy.types.Panel):
+    """
+    材质面板,用于添加修改默认材质
+    """
     bl_label = "Material"
     bl_category = "HiLoTool"
     bl_space_type = 'VIEW_3D'

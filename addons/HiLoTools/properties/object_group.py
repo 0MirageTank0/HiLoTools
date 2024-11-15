@@ -1,7 +1,10 @@
-from typing import List, Tuple, Optional
-
+"""
+物体组结构
+最核心的结构,高低模配对的数据基础
+"""
 import bpy
 from bpy.props import PointerProperty, StringProperty, BoolProperty, CollectionProperty, EnumProperty
+from typing import Tuple, Optional
 from bpy.types import Object, Context
 
 from addons.HiLoTools.utils.group_utils import set_attribute_for_group

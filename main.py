@@ -113,6 +113,7 @@ def get_init_file_path(addon_name):
 
 # https://devtalk.blender.org/t/plugin-hot-reload-by-cleaning-sys-modules/20040
 start_up_command = """
+import time
 import bpy
 from bpy.app.handlers import persistent
 import os
@@ -145,7 +146,8 @@ def watch_update_tick():
             except Exception as e:
                 print("Addon update failed:", e)
             existing_addon_md5 = addon_md5
-            print("Addon updated")
+            current_time = time.strftime("%H:%M:%S", time.localtime())
+            print(f"Addon updated at {{current_time}}")
     return 1.0
 
 

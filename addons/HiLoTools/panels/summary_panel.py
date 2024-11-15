@@ -1,5 +1,6 @@
 import bpy
 
+from addons.HiLoTools.operators.group_ops import OBJECT_OT_update_group_model_name
 from addons.HiLoTools.operators.selection_ops import OBJECT_OT_select_all_group, OBJECT_OT_select_ungrouped_objects, \
     OBJECT_OT_select_object
 
@@ -7,6 +8,9 @@ _ = bpy.app.translations.pgettext
 
 
 class VIEW3D_PT_SummaryPanel(bpy.types.Panel):
+    """
+    汇总面板,对当前工程的总览信息
+    """
     bl_label = "Summary"
     bl_category = "HiLoTool"
     bl_space_type = 'VIEW_3D'
@@ -22,6 +26,9 @@ class VIEW3D_PT_SummaryPanel(bpy.types.Panel):
         scene = context.scene
         obj_name_set = set()
         layout = self.layout
+
+        layout.operator(operator=OBJECT_OT_update_group_model_name.bl_idname, icon='FILE_REFRESH',
+                        text="Updated all object names")
 
         low_area = layout.column()
         high_area = layout.column()

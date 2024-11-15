@@ -2,7 +2,8 @@ import bpy
 from bpy.types import Context, UILayout, Object
 
 from addons.HiLoTools.operators.group_ops import OBJECT_OT_add_object_group, OBJECT_OT_remove_object_group, \
-    OBJECT_OT_add_object_to_group, OBJECT_OT_remove_object_from_group, OBJECT_OT_rename_group
+    OBJECT_OT_add_object_to_group, OBJECT_OT_remove_object_from_group, OBJECT_OT_rename_group, \
+    OBJECT_OT_update_group_model_name
 from addons.HiLoTools.operators.material_ops import MATRIAL_OT_create_default_material
 from addons.HiLoTools.operators.object_ops import OBJECT_OT_generate_low_poly_object
 from addons.HiLoTools.operators.selection_ops import OBJECT_OT_select_object
@@ -12,6 +13,9 @@ _ = bpy.app.translations.pgettext
 
 
 def draw_in_group_model_button(layout: UILayout, model_object: Object):
+    """
+    绘制在面板中绘制与模型关联的按钮，包含：选择物体、从组中删除物体
+    """
     if model_object:
         layout.operator(OBJECT_OT_select_object.bl_idname, text=model_object.name,
                         icon='HIDE_OFF',
@@ -25,6 +29,9 @@ def draw_in_group_model_button(layout: UILayout, model_object: Object):
 
 
 class VIEW3D_PT_ObjectGroupsPanel(bpy.types.Panel):
+    """
+    包含一个组列表的主面板
+    """
     bl_label = "HiLoTool"
     bl_idname = 'VIEW3D_PT_object_groups_panel'
     bl_space_type = 'VIEW_3D'
@@ -71,9 +78,12 @@ class VIEW3D_PT_ObjectGroupsPanel(bpy.types.Panel):
                 col = layout.column()
                 row = col.row()
                 row.label(text=obj_group.name, translate=False)
-                row = row.row()
+                row = row.row(align=True)
                 row.alignment = 'RIGHT'
                 row.operator(operator=OBJECT_OT_rename_group.bl_idname, icon='GREASEPENCIL').group_uuid = obj_group.uuid
+                row.operator(operator=OBJECT_OT_update_group_model_name.bl_idname, icon='FILE_REFRESH', text="")\
+                    .group_index = scene.object_groups_index
+
         elif context.mode == 'EDIT_MESH':
             # 显示物体组列表
             col = layout.column()
@@ -103,6 +113,9 @@ class VIEW3D_PT_ObjectGroupsPanel(bpy.types.Panel):
 
 
 class VIEW3D_PT_LowModelPanel(bpy.types.Panel):
+    """
+    显示低模及相关操作的可折叠子面板
+    """
     bl_parent_id = 'VIEW3D_PT_object_groups_panel'
     bl_label = ""
     bl_category = "HiLoTool"
@@ -152,6 +165,9 @@ class VIEW3D_PT_LowModelPanel(bpy.types.Panel):
 
 
 class VIEW3D_PT_HighListPanel(bpy.types.Panel):
+    """
+    显示高模列表的可折叠子面板
+    """
     bl_parent_id = 'VIEW3D_PT_object_groups_panel'
     bl_label = ""
     bl_category = "HiLoTool"

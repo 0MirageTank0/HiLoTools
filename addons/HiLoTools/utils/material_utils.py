@@ -1,3 +1,7 @@
+"""
+材质的工具函数
+包含创建工作区材质/应用组/删除组/应用物体/删除物体材质的操作
+"""
 import bpy
 from bpy.types import Object, Material
 

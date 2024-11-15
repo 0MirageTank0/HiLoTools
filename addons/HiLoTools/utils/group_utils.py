@@ -1,7 +1,10 @@
-from typing import Callable, Any
-
+"""
+有关组的工具函数
+包含快速的对组进行遍历/设置属性的操作
+"""
 import bpy
 from bpy.types import Object
+from typing import Callable, Any
 
 
 def check_group_index(index: int) -> bool:

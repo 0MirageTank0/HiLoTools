@@ -9,6 +9,16 @@ from addons.HiLoTools.properties.object_group import ObjectGroup, get_group_entr
 
 
 class OBJECT_OT_select_group(Operator):
+    """
+    选择根据index,在画面中选择组的成员
+
+    参数:
+        group_index: 组索引,会对此进行检查,不合法则跳过
+        select_low: 是否选择组内的低模
+        select_high: 是否选择组内的高模
+        deselect: 是否反转选择(即从当前所选范围内去除高模或者去除低模),默认为假
+        clear_selection: 是否在执行之前清除视图中的选择,默认为真
+    """
     bl_idname = 'object.select_group'
     bl_label = "Select Group"
     bl_description = "Select Group"
@@ -37,13 +47,11 @@ class OBJECT_OT_select_group(Operator):
             if self.clear_selection:
                 bpy.ops.object.select_all(action='DESELECT')
             if self.select_high:
-                print(f"{self.select_high=}")
                 for item in grp.high_models:
                     if item.high_model:
                         item.high_model.select_set(not self.deselect)
                         context.view_layer.objects.active = item.high_model
             if self.select_low and grp.low_model:
-                print(f"{self.select_low=}")
                 grp.low_model.select_set(not self.deselect)
                 context.view_layer.objects.active = grp.low_model
         else:
@@ -52,6 +60,21 @@ class OBJECT_OT_select_group(Operator):
 
 
 class OBJECT_OT_switch_group_selection(Operator):
+    """
+    根据当前所选的物体,反推出组,从而选择组的特定部分
+    此方法可以处理选择多个物体的情况
+
+    参数:
+        selection: 选择范围
+        -    ALL: 选择整个组
+        -    LOW: 只选择组的低模
+        -    HIGH: 只选择组的高模
+
+    例子:
+        当前选择了物体A.通过此函数可快速的切换到物体A所对应的所有高模(如果其本身是高模则选择组内所有高模)
+        如果当前选择了多个物体,则对每一个物体进行同样的处理过程
+
+    """
     bl_idname = 'object.switch_group_selection'
     bl_label = "Switch within Group"
     bl_description = "Switch objects within group based on current active item"
@@ -83,7 +106,7 @@ class OBJECT_OT_switch_group_selection(Operator):
 
         group_index_list: List[int] = []
         for selected_object in selected_objects:
-            _, group_index = get_group_entry(selected_object.group_uuid)
+            ignore, group_index = get_group_entry(selected_object.group_uuid)
             if group_index >= 0:
                 group_index_list.append(group_index)
 
@@ -100,12 +123,25 @@ class OBJECT_OT_switch_group_selection(Operator):
                                         select_high=select_high, clear_selection=False)
 
         if edit_switch:
+            if not context.selected_objects:
+                for obj in selected_objects:
+                    obj.select_set(True)
+                info = "High-Poly does not exist" if select_low else "High-Poly does not exist"
+                self.report({'WARNING'}, info)
             bpy.ops.object.mode_set(mode='EDIT')
 
         return {'FINISHED'}
 
 
 class OBJECT_OT_hover_select(Operator):
+    """
+    按住Alt时,对鼠标所选的物体进行全选组的操作
+
+    参数:
+        无
+        (current_group_index用于内部记录)
+
+    """
     bl_idname = 'object.hover_select'
     bl_label = "Hover Select with Alt Key"
     bl_description = "Select object under mouse while Alt is pressed"
@@ -166,6 +202,12 @@ class OBJECT_OT_hover_select(Operator):
 
 
 class OBJECT_OT_select_object(Operator):
+    """
+    选择指定名称的物体
+
+    参数:
+        object_name: 物体名称
+    """
     bl_idname = 'object.select_object'
     bl_label = "Select Object"
     bl_options = {'REGISTER', 'UNDO'}
@@ -195,6 +237,17 @@ class OBJECT_OT_select_object(Operator):
 
 
 class OBJECT_OT_select_all_group(Operator):
+    """
+    选择所有组(可进行组内高模/低模部分选择)
+
+    参数:
+        select_range: 选择范围
+        -   ALL:选择全部范围
+        -   HIGH: 选择高模范围
+        -   LOW: 选择低模范围
+        clear_selection: 是否在执行前先清除视图中选择的物体,默认为真
+
+    """
     bl_idname = 'object.select_all_group'
     bl_label = "Select All Groups"
     bl_description = "Select all objects in all groups"
@@ -232,6 +285,12 @@ class OBJECT_OT_select_all_group(Operator):
 
 
 class OBJECT_OT_select_ungrouped_objects(Operator):
+    """
+    选择所有未分组的物体
+
+    参数:
+        clear_selection: 是否在执行前先清除视图中选择的物体,默认为真
+    """
     bl_idname = 'object.select_ungrouped_objects'
     bl_label = "Select Ungrouped Objects"
     bl_description = "Select objects not in any group"

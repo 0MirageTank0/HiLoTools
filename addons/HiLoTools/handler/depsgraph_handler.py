@@ -25,6 +25,12 @@ def is_object_valid(obj):
 
 
 def on_object_num_changed(current_objects_set: set):
+    """
+    处理删除或复制物体的事件.
+    如果复制了组中的物体,则清除uuid
+    如果删除了组内的物体,则清除关联,清除物体数据,防止0用户数据残留
+
+    """
     global last_object_num, last_object_set
     current_object_num = len(current_objects_set)
     # 物体数量变化 添加了对象
@@ -40,13 +46,16 @@ def on_object_num_changed(current_objects_set: set):
                     new_object.group_uuid = ""
                     print("clear_uuid")
                 else:  # 存在组
+                    new_object.group_uuid = ""
+                    return
+                    # 默认直接清除uuid,不加入到组中
                     # 可能是撤销导致的物体增加 进行双重检查
-                    if all(hm.high_model != new_object for hm in grp.high_models):
-                        h = grp.high_models.add()
-                        h.high_model = new_object
-                        print("add_to_group")
-                    else:
-                        print("is undo,ignore add")
+                    # if all(hm.high_model != new_object for hm in grp.high_models):
+                    #     h = grp.high_models.add()
+                    #     h.high_model = new_object
+                    #     print("add_to_group")
+                    # else:
+                    #     print("is undo,ignore add")
     # 物体数量变化 删除了对象
     else:
         del_object_set = last_object_set - current_objects_set
@@ -64,14 +73,14 @@ def on_object_num_changed(current_objects_set: set):
                                 bpy.data.objects.remove(grp.low_model)
                                 grp.low_model = None
                                 print("remove_low_from_group")
-                        else:
-                            # 否则删除高模
-                            for (index, item) in enumerate(grp.high_models):
-                                if item.high_model == del_object:
-                                    grp.high_models.remove(index)
-                                    bpy.data.objects.remove(del_object)
-                                    print("remove_high_from_group")
-                                    break
+                                return
+                        # 否则删除高模
+                        for (index, item) in enumerate(grp.high_models):
+                            if item.high_model == del_object:
+                                grp.high_models.remove(index)
+                                bpy.data.objects.remove(del_object)
+                                print("remove_high_from_group")
+                                break
                 else:
                     if not del_object.users_scene:
                         bpy.data.objects.remove(del_object)
@@ -81,10 +90,12 @@ def on_object_num_changed(current_objects_set: set):
 
 
 def on_object_select_changed(selected_objects: List[Object]):
-    """处理物体模式下，所选物体发生变化的事件
+    """
+    处理物体模式下，所选物体发生变化的事件
     如果选择范围仅限于一个组，则显示组名+所选物体
     如果选择范围多个组、或选择了多个无关物体、不在同一个组中的物体，则什么也不做
-    如果选择了一个组中的低模或者一个组中的高模，则显示组名（高/低模）+所选物体"""
+    如果选择了一个组中的低模或者一个组中的高模，则显示组名（高/低模）+所选物体
+    """
     if not selected_objects:
         return
     selected_group = None

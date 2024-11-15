@@ -5,7 +5,7 @@ from addons.HiLoTools.handler.depsgraph_handler import depsgraph_register, depsg
 from addons.HiLoTools.handler.tab_handler import tab_register, tab_unregister
 from addons.HiLoTools.i18n.dictionary import dictionary
 from addons.HiLoTools.operators.selection_ops import OBJECT_OT_switch_group_selection, OBJECT_OT_hover_select
-from addons.HiLoTools.properties.AddonProperties import addon_properties
+from addons.HiLoTools.properties.properties import addon_properties
 from common.class_loader import auto_load
 from common.class_loader.auto_load import add_properties, remove_properties
 from common.i18n.dictionary import common_dictionary

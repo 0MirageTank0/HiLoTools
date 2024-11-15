@@ -1,3 +1,6 @@
+"""
+包含一系列主要属性的回调函数
+"""
 import bpy
 from bpy.types import Context
 

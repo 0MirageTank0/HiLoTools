@@ -5,7 +5,9 @@ from addons.HiLoTools.properties.object_group import ObjectGroup
 
 
 class OBJECT_UL_object_groups(bpy.types.UIList):
-
+    """
+    绘制组的列表
+    """
     def draw_item(self, context, layout, data, item, icon, active_data, active_property, index=0, flt_flag=0, ):
         obj_group: ObjectGroup = item
         scene = context.scene

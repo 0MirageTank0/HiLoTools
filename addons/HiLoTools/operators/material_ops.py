@@ -5,6 +5,12 @@ from addons.HiLoTools.utils.material_utils import create_material
 
 
 class MATRIAL_OT_restore_default_material(Operator):
+    """
+    还原默认材质(用于半透视/X-Ray模式)的颜色
+
+    参数:
+        无
+    """
     bl_idname = 'material.restore_default_material'
     bl_label = "Restore Default Material"
     bl_description = "Restore Default Material"
@@ -27,6 +33,14 @@ class MATRIAL_OT_restore_default_material(Operator):
 
 
 class MATRIAL_OT_create_default_material(Operator):
+    """
+    创建默认材质(用于半透视/X-Ray模式),如果存在同名的材质,则什么也不做.
+
+    参数:
+        background: 是否建立背景材质
+        high_model: 是否建立高模材质
+        low_model: 是否建立低模材质
+    """
     bl_idname = 'material.create_default_material'
     bl_label = "Create Default Material"
     bl_description = "Create Default Material"

@@ -6,8 +6,26 @@ from addons.HiLoTools.properties.object_group import ObjectGroup
 from addons.HiLoTools.utils.material_utils import clear_object_material, clear_group_material, apply_material_to_object, \
     apply_material_to_group, apply_material_to_group_high_model, apply_material_to_group_low_model
 
+"""
+注意:
+目前实现X-Ray/半透效果的方式基于材质,因此无法区分当前应用的效果究竟是什么,所谓"退出半透/X-Ray"只是统一的删除所有材质.
+这会导致物体丢失原有材质.
+
+计划的优化方向是为组添加额外的参数用于标定状态,记录旧材质.从而实现保留原始材质
+"""
 
 class OBJECT_OT_solo_group(Operator):
+    """
+    根据组的index,对其他组应用半透效果
+
+    参数:
+        group_index: 组的索引,会对其进行检查
+        influence_ungrouped: 是否对未分组对象应用半透效果
+        type: 触发类型
+        -   TOGGLE: 状态切换(处理当用户在列表中点选小图标时的逻辑)
+        -   DEFAULT: 默认,每次对无关组应用半透效果
+        exit_solo: 退出半透,清除所有效果
+    """
     bl_idname = 'object.solo_group'
     bl_label = "Solo Group"
     bl_description = "Solo Group"
@@ -74,6 +92,16 @@ class OBJECT_OT_solo_group(Operator):
 
 
 class OBJECT_OT_local_view_group(Operator):
+    """
+    根据组的index,进入对应组的局部视图
+
+    参数:
+        group_index: 组的索引,会对其进行检查
+        type: 触发类型
+        -   TOGGLE: 状态切换(处理当用户在列表中点选小图标时的逻辑)
+        -   DEFAULT: 默认,每次只进入当前组的局部视图
+        exit_local_view: 退出,清除所有效果
+    """
     bl_idname = 'object.local_view_group'
     bl_label = "Local View Group"
     bl_description = "Switch to the local view of the current object group"
@@ -134,6 +162,14 @@ class OBJECT_OT_local_view_group(Operator):
 
 
 class OBJECT_OT_x_ray_group(Operator):
+    """
+    根据组的index,对组应用X-Ray效果
+
+    参数:
+        group_index: 组的索引,会对其进行检查
+        clear_others_material: 是否清除无关组的材质
+        exit_x_ray: 退出X-Ray,清除所有效果
+    """
     bl_idname = 'object.x_ray_group'
     bl_label = "X-Ray Group"
     bl_description = "Switch to X-Ray mode for the object group"

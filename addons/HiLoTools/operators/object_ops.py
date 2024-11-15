@@ -6,12 +6,25 @@ from addons.HiLoTools.properties.object_group import ObjectGroup
 
 
 class ModifierSetting(bpy.types.PropertyGroup):
+    """
+    修改器信息,仅用于充当OBJECT_OT_generate_low_poly_object的参数
+    """
     modifier_name: StringProperty()
     modifier_type: StringProperty()
     exclude: BoolProperty()
 
 
 class OBJECT_OT_generate_low_poly_object(Operator):
+    """
+    根据高模模型生成低模物体(去除高模的特定修改器,合并网格)
+
+    参数:
+        exclude_type: 去除修改器的方式
+            Name: 根据修改器名称去除修改器
+            Type: 根据修改器类型去除修改器
+        exclude_modifiers: 要去除的修改器的信息
+        low_collection_name: 指定要将生成的低模放置于哪一个集合的名称,不存在则创建,为空则使用LOW作为参数
+    """
     bl_idname = 'object.generate_low_model'
     bl_label = "Generate Low-Poly Object"
     bl_description = "Generate Low-Poly Object from High-Poly"

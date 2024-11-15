@@ -1,4 +1,8 @@
-import math
+"""
+文本绘制工具函数
+负责在视图中所选物体上绘制文本,包含粗略计算质心点,计时显示的功能
+
+"""
 import random
 import time
 from typing import Optional
