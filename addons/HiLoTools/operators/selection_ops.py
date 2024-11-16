@@ -209,6 +209,7 @@ class OBJECT_OT_select_object(Operator):
     """
     bl_idname = 'object.select_object'
     bl_label = "Select Object"
+    bl_description = "Select Object"
     bl_options = {'REGISTER', 'UNDO'}
 
     object_name: bpy.props.StringProperty(name="Object Name", options={'HIDDEN'})
@@ -312,6 +313,9 @@ class OBJECT_OT_select_ungrouped_objects(Operator):
 
         for obj in scene.objects:
             if obj.type == 'MESH' and not obj.group_uuid:
-                obj.select_set(True)
+                if obj.users_scene and obj.users_scene[0] == scene:
+                    obj.select_set(True)
+                else:
+                    self.report({'WARNING'}, "The object cannot be selected because it is not in the current scene")
 
         return {'FINISHED'}

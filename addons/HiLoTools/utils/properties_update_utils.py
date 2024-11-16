@@ -4,6 +4,8 @@
 import bpy
 from bpy.types import Context
 
+no_callback: bool = False
+
 
 def update_background_color(self, context: Context):
     scene = context.scene
@@ -20,8 +22,17 @@ def update_low_model_color(self, context: Context):
     scene.low_model_material.diffuse_color = scene.low_model_color
 
 
+def next_select_group_index_no_callback():
+    global no_callback
+    no_callback = True
+
+
 def update_select_group_index(self, context: Context):
     """处理当前组索引变更"""
+    global no_callback
+    if no_callback:
+        no_callback = False
+        return
     if context.mode != 'OBJECT':
         return
     scene = context.scene

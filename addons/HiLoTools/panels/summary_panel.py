@@ -1,6 +1,6 @@
 import bpy
 
-from addons.HiLoTools.operators.group_ops import OBJECT_OT_update_group_model_name
+from addons.HiLoTools.operators.object_ops import OBJECT_OT_update_model_name, OBJECT_OT_move_to_collection
 from addons.HiLoTools.operators.selection_ops import OBJECT_OT_select_all_group, OBJECT_OT_select_ungrouped_objects, \
     OBJECT_OT_select_object
 
@@ -27,8 +27,9 @@ class VIEW3D_PT_SummaryPanel(bpy.types.Panel):
         obj_name_set = set()
         layout = self.layout
 
-        layout.operator(operator=OBJECT_OT_update_group_model_name.bl_idname, icon='FILE_REFRESH',
+        layout.operator(operator=OBJECT_OT_update_model_name.bl_idname, icon='FILE_REFRESH',
                         text="Updated all object names")
+        layout.operator(operator=OBJECT_OT_move_to_collection.bl_idname, icon='OUTLINER_COLLECTION')
 
         low_area = layout.column()
         high_area = layout.column()

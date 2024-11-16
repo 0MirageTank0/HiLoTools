@@ -2,11 +2,11 @@ import uuid
 from typing import List
 
 import bpy
-from bpy.props import StringProperty, BoolProperty, EnumProperty, IntProperty
+from bpy.props import StringProperty, BoolProperty, EnumProperty
 from bpy.types import Operator, Context, Object
 
+from addons.HiLoTools.operators.object_ops import OBJECT_OT_update_model_name
 from addons.HiLoTools.properties.object_group import ObjectGroup, get_group_entry, add_group_entry, del_group_entry
-from addons.HiLoTools.utils.group_utils import process_low_model, process_high_models
 from addons.HiLoTools.utils.material_utils import clear_object_material
 
 _ = bpy.app.translations.pgettext
@@ -214,88 +214,6 @@ class OBJECT_OT_add_object_to_group(Operator):
         layout.prop(scene, 'selected_high_model', text="Select High-Poly Objects", icon='SHADING_RENDERED')
 
 
-class OBJECT_OT_update_group_model_name(Operator):
-    """
-    重命名组内的物体
-
-    参数:
-        group_index: 重命名目标,若为-1则代表重命名所有
-        update_low_model: 是否更新低模命名
-        update_high_model: 是否更新高模命名
-    """
-    bl_idname = 'object.update_group_model_name'
-    bl_label = "Update Group Objects Name"
-    bl_description = "Updates the suffix for all objects in the group"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    group_index: IntProperty(name="Group Index", default=-1, options={'SKIP_SAVE'})
-    update_low_model: BoolProperty(name="Synchronize Low-Poly Name",
-                                   description="Synchronize Low-Poly Name",
-                                   default=True, options={'SKIP_SAVE'})
-    update_high_model: BoolProperty(name="Synchronize High-Poly Name",
-                                    description="Synchronize High-Poly Name",
-                                    default=True, options={'SKIP_SAVE'})
-
-    def execute(self, context):
-        if not (self.update_low_model or self.update_high_model):
-            return {'CANCELLED'}
-        scene = context.scene
-        index = self.group_index
-
-        existing_names = {obj.name for obj in bpy.data.objects}
-
-        def update_object_name(obj: Object, mesh_name: str, suffix: str):
-            existing_names.remove(obj.name)
-            ind: int = 0
-            target_name = "{}{}".format(mesh_name, suffix)
-            while target_name in existing_names:
-                ind += 1
-                target_name = "{}_{}{}".format(mesh_name, ind, suffix)
-            obj.name = target_name
-            print(target_name)
-            existing_names.add(target_name)
-
-        def update_group(group: ObjectGroup):
-            if self.update_low_model:
-                process_low_model(group,
-                                  lambda obj: update_object_name(obj,
-                                                                 mesh_name=group.model_name,
-                                                                 suffix=scene.low_suffix))
-            if self.update_high_model:
-                process_high_models(group,
-                                    lambda obj: update_object_name(obj,
-                                                                   mesh_name=group.model_name,
-                                                                   suffix=scene.high_suffix))
-
-        if index == -1:
-            for grp in scene.object_groups:
-                update_group(grp)
-        else:
-            update_group(scene.object_groups[index])
-        return {'FINISHED'}
-
-    def invoke(self, context, event):
-        wm = context.window_manager
-        return wm.invoke_props_dialog(self)
-
-    def draw(self, context):
-        scene = context.scene
-        layout = self.layout
-        col = layout.column(align=True)
-        col.prop(self, 'update_low_model')
-        col.prop(self, 'update_high_model')
-        self.draw_suffix_part(layout, scene)
-
-    @staticmethod
-    def draw_suffix_part(layout, scene):
-
-        box = layout.box()
-        box.label(text="Suffix")
-        col = box.column(align=True)
-        col.prop(scene, 'low_suffix', icon='SHADING_WIRE')
-        col.prop(scene, 'high_suffix', icon='SHADING_RENDERED')
-
-
 class OBJECT_OT_remove_object_from_group(Operator):
     """
     从组中删除物体
@@ -450,4 +368,4 @@ class OBJECT_OT_rename_group(Operator):
         col.prop(self, property='new_name', icon='MESH_DATA')
         col.prop(self, 'update_low_model')
         col.prop(self, 'update_high_model')
-        OBJECT_OT_update_group_model_name.draw_suffix_part(box, scene)
+        OBJECT_OT_update_model_name.draw_suffix_part(box, scene)

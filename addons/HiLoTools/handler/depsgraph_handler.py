@@ -5,6 +5,7 @@ from bpy.app.handlers import persistent
 from bpy.types import Object, Scene
 
 from addons.HiLoTools.properties.object_group import get_group_entry, ObjectGroup
+from addons.HiLoTools.utils.properties_update_utils import next_select_group_index_no_callback
 from addons.HiLoTools.utils.text_utils import remove_text, show_text_on_object
 
 _ = bpy.app.translations.pgettext
@@ -99,6 +100,7 @@ def on_object_select_changed(selected_objects: List[Object]):
     if not selected_objects:
         return
     selected_group = None
+    selected_group_index = -1
     selection_have_low: bool = False
     selection_have_high: bool = False
     mixed_selection: bool = False
@@ -109,7 +111,7 @@ def on_object_select_changed(selected_objects: List[Object]):
         selected_object.color = (1, 0, 0, 0.5)
         grp = None
         if selected_object.group_uuid:
-            grp, index = get_group_entry(selected_object.group_uuid)
+            grp, selected_group_index = get_group_entry(selected_object.group_uuid)
         if grp:
             if selected_group is None:
                 selected_group = grp
@@ -135,6 +137,12 @@ def on_object_select_changed(selected_objects: List[Object]):
     if display_object is not None:
         show_text_on_object(_("Not in any group"), display_object.name, (.9, 0, 0, 0.2))
         return
+
+    scene = bpy.context.scene
+    if scene.sync_select:
+        next_select_group_index_no_callback()
+        scene.object_groups_index = selected_group_index
+
     name_str = ",".join([o.name for o in selected_objects])
     if selection_have_low and selection_have_high:
         show_text_on_object("{}".format(selected_group.name), name_str)

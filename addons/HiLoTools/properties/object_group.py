@@ -68,10 +68,18 @@ def get_group_index(uuid) -> int:
     return group_cache.get(uuid, -1)
 
 
+inited: bool = False
+
+
 def get_group_entry(uuid) -> Tuple[Optional[ObjectGroup], int]:
+    global inited
     index = get_group_index(uuid)
     if index != -1:
         return bpy.context.scene.object_groups[index], index
+    elif not inited:
+        inited = True
+        init_group_dict()
+        return get_group_entry(uuid)
     return None, -1
 
 

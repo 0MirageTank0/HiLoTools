@@ -24,13 +24,13 @@ class VIEW3D_PT_MaterialPanel(bpy.types.Panel):
         row.operator(MATRIAL_OT_restore_default_material.bl_idname, icon='FILE_REFRESH', text="")
         col = layout.column(align=True)
         col.prop(scene, 'background_material', text="Background Material")
-        col.prop(scene, 'high_model_material', text="High-Poly Material")
-        col.prop(scene, 'low_model_material', text="Low-Poly Material")
+        col.prop(scene, 'high_model_material', text="X-Ray High-Poly")
+        col.prop(scene, 'low_model_material', text="X-Ray Low-Poly")
         col.separator()
         if scene.background_material:
             col.prop(scene, 'background_color', text="Background Color", text_ctxt="hl")
         if scene.high_model_material:
-            col.prop(scene, 'high_model_color', text="High-Poly Color")
+            col.prop(scene, 'high_model_color', text="X-Ray High-Poly Color")
         if scene.low_model_material:
-            col.prop(scene, 'low_model_color', text="Low-Poly Color")
+            col.prop(scene, 'low_model_color', text="X-Ray Low-Poly Color")
             

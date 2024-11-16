@@ -13,7 +13,7 @@ class MATRIAL_OT_restore_default_material(Operator):
     """
     bl_idname = 'material.restore_default_material'
     bl_label = "Restore Default Material"
-    bl_description = "Restore Default Material"
+    bl_description = "Resets the color of the default material (for semi-see-through/X-Ray mode)."
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -43,15 +43,16 @@ class MATRIAL_OT_create_default_material(Operator):
     """
     bl_idname = 'material.create_default_material'
     bl_label = "Create Default Material"
-    bl_description = "Create Default Material"
+    bl_description = ("Create a default material (for semi-see-through/X-Ray mode) "
+                      "and do nothing if a material with the same name exists.")
     bl_options = {'REGISTER', 'UNDO'}
 
     background: BoolProperty(name="Background Material",
                              description="Add Background Material", default=True, options={'SKIP_SAVE'})
-    high_model: BoolProperty(name="High-Poly Material",
-                             description="Add High-Poly Material", default=True, options={'SKIP_SAVE'})
-    low_model: BoolProperty(name="Low-Poly Material",
-                            description="Add Low-Poly Material", default=True, options={'SKIP_SAVE'})
+    high_model: BoolProperty(name="X-Ray High-Poly",
+                             description="Add X-Ray High-Poly", default=True, options={'SKIP_SAVE'})
+    low_model: BoolProperty(name="X-Ray Low-Poly",
+                            description="Add X-Ray Low-Poly", default=True, options={'SKIP_SAVE'})
 
     @classmethod
     def poll(cls, context: Context):

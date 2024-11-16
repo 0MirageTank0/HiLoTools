@@ -14,6 +14,7 @@ def mode_change_callback():
     如果是一个组中的高模与低模,则自动的切换到低模的编辑模式.
     因为同时编辑高模低模通常没有意义
     """
+    print("callback")
     global handling
     if handling:
         return
@@ -22,6 +23,7 @@ def mode_change_callback():
         context = bpy.context
         scene = context.scene
         selected_objects = context.selected_objects
+
         if not selected_objects:
             handling = False
             return
@@ -59,8 +61,8 @@ def mode_change_callback():
     handling = False
 
 
-# 启动操作并监听Tab键的按下
-def tab_register():
+@persistent
+def subscribe_rna(_):
     bpy.msgbus.subscribe_rna(
         key=(bpy.types.Object, "mode"),
         owner="object_mode_check",
@@ -69,5 +71,7 @@ def tab_register():
     )
 
 
-def tab_unregister():
-    bpy.msgbus.clear_by_owner("object_mode_check")
+# 启动操作并监听Tab键的按下
+def tab_register():
+    subscribe_rna(1)
+    bpy.app.handlers.load_post.append(subscribe_rna)

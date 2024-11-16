@@ -25,18 +25,36 @@ addon_properties = {
         "transparent_ungrouped": BoolProperty(name="Affects Out-Of-Group",
                                               description="Translucent: All objects that do not belong to any group",
                                               update=update_transparent_ungrouped),
-        "x_ray": BoolProperty(name="X Ray", description="X-Ray Mode", update=update_x_ray),
+        "x_ray": BoolProperty(name="X Ray",
+                              description="X-ray fluoroscopy of the currently active group is used to more clearly see "
+                                          "the shape difference between low and high poly",
+                              update=update_x_ray),
         "low_suffix": StringProperty(name="Low-Poly Mesh Suffix", default="_low"),
         "high_suffix": StringProperty(name="High-Poly Mesh Suffix", default="_high"),
-        "background_material": PointerProperty(name="Background Material", type=Material),
+        "background_material": PointerProperty(name="Background Material",
+                                               description="Material used for inactive objects in Semi-Transparent mode"
+                                                           ", which is only used for plug-in visuals "
+                                                           "and should not be exported for production purposes",
+                                               type=Material),
         "background_color": FloatVectorProperty(name="Background Color", subtype='COLOR', min=0, max=1, size=4,
                                                 default=(0, 0, 0, 1), update=update_background_color),
-        "high_model_material": PointerProperty(name="High-Poly Material", type=Material),
-        "high_model_color": FloatVectorProperty(name="High-Poly Color", subtype='COLOR', min=0, max=1, size=4,
+        "high_model_material": PointerProperty(name="X-Ray High-Poly",
+                                               description="Material used for high-poly objects in X-Ray mode, "
+                                                           "which is only used for plug-in visuals "
+                                                           "and should not be exported for production purposes",
+                                               type=Material),
+        "high_model_color": FloatVectorProperty(name="X-Ray High-Poly Color", subtype='COLOR', min=0, max=1, size=4,
                                                 default=(0, 0, 0, 1), update=update_high_model_color),
-        "low_model_material": PointerProperty(name="Low-Poly Material", type=Material),
-        "low_model_color": FloatVectorProperty(name="Low-Poly Color", subtype='COLOR', min=0, max=1, size=4,
+        "low_model_material": PointerProperty(name="X-Ray Low-Poly",
+                                              description="Material used for low-poly objects in X-Ray mode, "
+                                                          "which is only used for plug-in visuals "
+                                                          "and should not be exported for production purposes",
+                                              type=Material),
+        "low_model_color": FloatVectorProperty(name="X-Ray Low-Poly Color", subtype='COLOR', min=0, max=1, size=4,
                                                default=(0, 0, 0, 1), update=update_low_model_color),
+        "sync_select": BoolProperty(name="Sync Selection",
+                                    description="Synchronizes the active group to the currently selected",
+                                    default=False)
     },
     bpy.types.Object: {
         "group_uuid": StringProperty(name="UUID",

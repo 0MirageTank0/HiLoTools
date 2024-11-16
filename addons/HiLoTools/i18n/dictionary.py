@@ -7,7 +7,8 @@ dictionary = {
         ("*", "Model Group Management"): "模型组管理",
         ("*", "Add Object Group"): "添加物体组",
         ("*", "Delete Object Group"): "删除物体组",
-        ("*", "To make the semi-transparent work, initialize the background material first"): "为了使半透工作，先初始化背景材质",
+        ("*",
+         "To make the semi-transparent work, initialize the background material first"): "为了使半透工作，先初始化背景材质",
         ("*", "Initialize Background Material"): "初始化背景材质",
         ("*", "Current Group:"): "当前组:",
         ("*", "Current Group"): "当前组别",
@@ -42,39 +43,30 @@ dictionary = {
         ("*", "Material"): "材质",
         ("*", "HiLoTool"): "HiLoTool",
         ("*", "Background Material"): "背景材质",
-        ("*", "High-Poly Material"): "高模材质",
-        ("*", "Low-Poly Material"): "低模材质",
+        ("*", "X-Ray High-Poly"): "X-Ray高模材质",
+        ("*", "X-Ray Low-Poly"): "X-Ray低模材质",
         # text_ctxt是hl,用于区分默认的Background翻译
         ("hl", "Background Color"): "背景颜色",
-        ("*", "High-Poly Color"): "高模颜色",
-        ("*", "Low-Poly Color"): "低模颜色",
+        ("*", "X-Ray High-Poly Color"): "X-Ray高模颜色",
+        ("*", "X-Ray Low-Poly Color"): "X-Ray低模颜色",
         # group_ops
         ("Operator", "Add Object Group"): "添加物体组",
         ("*", "Create a new group with the selected objects as the High-Poly of the new group"):
             "创建一个新组,并将所选物体作为新组的高模",
-        ("*", "Place each selected object individually in a different new group"): "将每个所选物体单独的放到不同的新组中",
+        ("*",
+         "Place each selected object individually in a different new group"): "将每个所选物体单独的放到不同的新组中",
         ("*", "The prefix used to rename objects in this group"): "对组内物体进行重命名时所采用的前缀",
         ("*", "The display name of this group, which does not affect the actual name of the object"):
             "此组的显示名称,不影响物体的实际名称",
-        ("*", "Separate grouping is enabled, so each object will be in its own group"): "启用了单独的分组，因此每个对象都将位于其自己的组中",
+        ("*",
+         "Separate grouping is enabled, so each object will be in its own group"): "启用了单独的分组，因此每个对象都将位于其自己的组中",
         ("*", "Selected high-poly object:"): "已选择的高模：",
         ("*", "Ignored objects:"): "忽略的对象：",
-        ("*", "Objects will be ignored if they are already in another group"): "如果对象已位于另一个组中，则对象将被忽略",
+        (
+        "*", "Objects will be ignored if they are already in another group"): "如果对象已位于另一个组中，则对象将被忽略",
         ("*", "Separate grouping"): "单独分组",
         ("*", "Update Name"): "更新名称",
         ("*", "Update the suffix for the high-poly object name"): "为高模物体名称更新后缀",
-        ("Operator", "Update Group Objects Name"): "更新组内物体名称",
-        ("*", "Updates the suffix for all objects in the group"): "为组内所有物体更新后缀",
-        ("Operator", "Updated all object names"): "更新所有物体命名",
-        ("*", ""): "",
-        ("*", "Group Name"): "组名称",
-        ("*", "Name"): "名称",
-        ("*", "New Group"): "New Group",
-        ("*", "Mesh Name"): "网格名称",
-        ("*", "Please select high-poly objects not in other groups"): "需要选择不处于其他组的高模物体",
-        ("*", "Skipped due to being in another group:"): "因已添加到其他组，已跳过：",
-        ("*", "Object group added"): "物体组已添加",
-        ("*", "Selected high-poly objects:"): "已选择的高模：",
         ("Operator", "Delete Object Group"): "删除物体组",
         ("*", "Deletes the selected group (does not delete objects in the group)"): "删除所选的组(不会删除组内的物体)",
         ("*", "Please select a group"): "需要选择组",
@@ -118,12 +110,14 @@ dictionary = {
         ("*", "Suffix"): "后缀",
         # material_ops
         ("Operator", "Restore Default Material"): "恢复默认材质",
-        ("*", "Restore Default Material"): "恢复默认材质",
+        ("*", "Resets the color of the default material (for semi-see-through/X-Ray mode)."):
+            "还原默认材质(用于半透视/X-Ray模式)的颜色",
         ("Operator", "Create Default Material"): "创建默认材质",
-        ("*", "Create Default Material"): "创建默认材质",
+        ("*", "Create a default material (for semi-see-through/X-Ray mode) and do nothing if a material with the same "
+              "name exists."): "创建默认材质(用于半透视/X-Ray模式),如果存在同名的材质,则什么也不做.",
         ("*", "Add Background Material"): "是否添加背景材质",
-        ("*", "Add High-Poly Material"): "是否添加高模材质",
-        ("*", "Add Low-Poly Material"): "是否添加低模材质",
+        ("*", "Add X-Ray High-Poly"): "是否添加X-Ray高模材质",
+        ("*", "Add X-Ray Low-Poly"): "是否添加X-Ray低模材质",
         # object_ops
         ("Operator", "Generate Low-Poly Object"): "生成低模物体",
         ("*", "Generate Low-Poly Object from High-Poly"): "根据高模组成低模物体",
@@ -140,6 +134,32 @@ dictionary = {
         ("*", "Create LOW Collection Automatically if Empty"): "为空则自动创建LOW集合",
         ("*", "Excluded Modifiers"): "排除的修改器",
         ("*", "No Modifiers"): "无修改器",
+        ("Operator", "Move Objects to Collection"): "移动物体到集合",
+        ("*", "Move all grouped objects to the corresponding set"): "移动所有已编组的物体到对应集合中",
+        ("*", "Move Low-Poly Model"): "移动低模物体",
+        ("*", "Move the low-poly model to the low-poly collection"): "将低模物体移动到低模集合中",
+        ("*", "Move High-Poly Models"): "移动高模物体",
+        ("*", "Move the high-poly models to the high-poly collection"): "将高模物体移动到高模集合中",
+        ("*", "Low-Poly Collection"): "低模集合",
+        ("*", "The name of the collection where low-poly objects will be moved to"): "低模物体将要被移动到此集合中",
+        ("*", "High-Poly Collection"): "高模集合",
+        ("*", "The name of the collection where high-poly objects will be moved to"): "高模物体将要被移动到此集合中",
+        ("*", "Note: If collection does not exist, it will be created"): "注意：如果集合不存在，则创建集合",
+        ("Operator", "Update Objects Name"): "更新组内物体名称",
+        ("*", "Rename all objects in the group, the naming convention is: group name + suffix, "
+              "if there are duplicate objects, the _n distinction will be appended before the suffix"):
+            "重命名已遍组的所有物体,命名规范为：组名+后缀，如果存在重名物体则会在后缀之前附加_n区分",
+        ("Operator", "Updated all object names"): "更新所有物体命名",
+        ("*", ""): "",
+        ("*", "Group Name"): "组名称",
+        ("*", "Name"): "名称",
+        ("*", "New Group"): "New Group",
+        ("*", "Mesh Name"): "网格名称",
+        ("*", "Please select high-poly objects not in other groups"): "需要选择不处于其他组的高模物体",
+        ("*", "Skipped due to being in another group:"): "因已添加到其他组，已跳过：",
+        ("*", "Object group added"): "物体组已添加",
+        ("*", "Selected high-poly objects:"): "已选择的高模：",
+        ("*", ""): "",
         # selection_ops
         ("Operator", "Select Group"): "选择组",
         ("*", "Can only be used in Object Mode"): "只能在物体模式中使用",
@@ -171,6 +191,8 @@ dictionary = {
         ("*", "High-Poly does not exist"): "高模不存在",
         ("*", "Low-Poly does not exist"): "低模不存在",
         ("*", "Warning"): "警告",
+        ("*",
+         "The object cannot be selected because it is not in the current scene"): "无法选择物体,因为它不在当前场景中",
         ("*", ""): "",
         # view_ops
         ("*", "Solo Group"): "Solo Group",
@@ -196,10 +218,30 @@ dictionary = {
         ("*", "Translucent: All objects that do not belong to any group"): "半透明所有不属于任何组的物体",
         ("*", "High-Poly Mesh Suffix"): "高模后缀",
         ("*", "Low-Poly Mesh Suffix"): "低模后缀",
-        ("*", "X-Ray Mode"): "X光透视模式",
+        ("*", "X-ray fluoroscopy of the currently active group is used to more clearly see "
+              "the shape difference between low and high poly"):
+            "对当前活动组进行X光透视，用于更加明显的看出低模与高模之间的形状差异",
+        ("*", "Material used for inactive objects in Semi-Transparent mode, which is only used for plug-in visuals "
+              "and should not be exported for production purposes"):
+            "半透模式下非活动物体所用的材质，此材质仅用于插件视觉效果，不应该导出",
+        ("*", "Material used for high-poly objects in X-Ray mode, which is only used for plug-in visuals "
+              "and should not be exported for production purposes"):
+            "X-Ray模式下高模物体所用的材质，此材质仅用于插件视觉效果，不应该导出",
+        ("*", "Material used for low-poly objects in X-Ray mode, which is only used for plug-in visuals "
+              "and should not be exported for production purposes"):
+            "X-Ray模式下低模物体所用的材质，此材质仅用于插件视觉效果，不应该导出",
+        ("*", ""): "",
+        ("*", ""): "",
+        ("*", ""): "",
+        ("*", ""): "",
+        ("*", ""): "",
+        ("*", ""): "",
         ("*", "Warning: Do not modify this value. This value is used to quickly determine the object's affiliation "
               "without having to iterate through the contents of the entire group for matching."):
             "警告：请勿修改此值。此值用于快速确定物体所属，而无需遍历整个组的内容进行匹对。",
+        ("*", "Sync Selection"): "同步选择",
+        ("*", "Synchronizes the active group to the currently selected"): "将活动组与当前所选同步",
+        ("*", ""): "",
         # object_group
         ("*", "Active"): "是否可被选择",
         ("*", "Visible"): "是否可见",

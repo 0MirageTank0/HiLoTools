@@ -2,10 +2,9 @@ import bpy
 from bpy.types import Context, UILayout, Object
 
 from addons.HiLoTools.operators.group_ops import OBJECT_OT_add_object_group, OBJECT_OT_remove_object_group, \
-    OBJECT_OT_add_object_to_group, OBJECT_OT_remove_object_from_group, OBJECT_OT_rename_group, \
-    OBJECT_OT_update_group_model_name
+    OBJECT_OT_add_object_to_group, OBJECT_OT_remove_object_from_group, OBJECT_OT_rename_group
 from addons.HiLoTools.operators.material_ops import MATRIAL_OT_create_default_material
-from addons.HiLoTools.operators.object_ops import OBJECT_OT_generate_low_poly_object
+from addons.HiLoTools.operators.object_ops import OBJECT_OT_generate_low_poly_object, OBJECT_OT_update_model_name
 from addons.HiLoTools.operators.selection_ops import OBJECT_OT_select_object
 from addons.HiLoTools.properties.object_group import ObjectGroup, get_group_entry
 
@@ -46,6 +45,9 @@ class VIEW3D_PT_ObjectGroupsPanel(bpy.types.Panel):
 
         if context.mode == 'OBJECT':
             # 添加和删除物体组的按钮
+            row = layout.row()
+            row.alignment = 'RIGHT'
+            row.prop(scene, 'sync_select', icon='UV_SYNC_SELECT', text="")
             col = layout.column(align=True)
             row = col.row(align=True)
             row.operator(OBJECT_OT_add_object_group.bl_idname, icon='ADD')
@@ -81,7 +83,7 @@ class VIEW3D_PT_ObjectGroupsPanel(bpy.types.Panel):
                 row = row.row(align=True)
                 row.alignment = 'RIGHT'
                 row.operator(operator=OBJECT_OT_rename_group.bl_idname, icon='GREASEPENCIL').group_uuid = obj_group.uuid
-                row.operator(operator=OBJECT_OT_update_group_model_name.bl_idname, icon='FILE_REFRESH', text="")\
+                row.operator(operator=OBJECT_OT_update_model_name.bl_idname, icon='FILE_REFRESH', text="")\
                     .group_index = scene.object_groups_index
 
         elif context.mode == 'EDIT_MESH':
