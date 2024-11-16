@@ -17,6 +17,11 @@ from addons.HiLoTools.utils.material_utils import clear_object_material, clear_g
 is_dirty_background: bool = True
 
 
+def mark_background_dirty():
+    global is_dirty_background
+    is_dirty_background = True
+
+
 class OBJECT_OT_solo_group(Operator):
     """
     根据组的index,对其他组应用半透效果
@@ -62,10 +67,8 @@ class OBJECT_OT_solo_group(Operator):
                 entry: ObjectGroup
                 if entry.in_background_material:
                     entry.in_background_material = False
-                    entry.in_x_ray_material = False
                     entry.is_active = True
                     clear_group_material(entry)
-
             is_dirty_background = True
         else:
             if self.group_index < 0 or self.group_index >= len(scene.object_groups):
@@ -73,18 +76,22 @@ class OBJECT_OT_solo_group(Operator):
                 return {'CANCELLED'}
             if self.type == 'DEFAULT':
                 # 处理背景
-                if self.influence_ungrouped and is_dirty_background:
+                if is_dirty_background:
                     for obj in scene.objects:
                         if obj.type == 'MESH' and not obj.group_uuid:
-                            obj.hide_select = True
-                            apply_material_to_object(obj, scene.background_material)
+                            if self.influence_ungrouped:
+                                obj.hide_select = True
+                                apply_material_to_object(obj, scene.background_material)
+                            else:
+                                obj.hide_select = False
+                                clear_object_material(obj)
                     is_dirty_background = False
                 for index, entry in enumerate(scene.object_groups):
                     entry: ObjectGroup
+                    entry.in_x_ray_material = False
                     if index == self.group_index:
                         if entry.in_background_material:
                             entry.in_background_material = False
-                            entry.in_x_ray_material = False
                             entry.is_active = True
                             clear_group_material(entry)
                     else:

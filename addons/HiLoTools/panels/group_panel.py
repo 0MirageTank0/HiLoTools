@@ -31,18 +31,17 @@ class VIEW3D_PT_ObjectGroupsPanel(bpy.types.Panel):
     """
     包含一个组列表的主面板
     """
-    bl_label = "HiLoTool"
+    bl_label = "HiLoTools"
     bl_idname = 'VIEW3D_PT_object_groups_panel'
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_category = "HiLoTool"
+    bl_category = "HiLoTools"
     bl_order = 0
     bl_options = {'HEADER_LAYOUT_EXPAND'}
 
     def draw(self, context: Context):
         layout = self.layout
         scene = context.scene
-
         if context.mode == 'OBJECT':
             # 添加和删除物体组的按钮
             row = layout.row()
@@ -50,7 +49,9 @@ class VIEW3D_PT_ObjectGroupsPanel(bpy.types.Panel):
             row.prop(scene, 'sync_select', icon='UV_SYNC_SELECT', text="")
             col = layout.column(align=True)
             row = col.row(align=True)
-            row.operator(OBJECT_OT_add_object_group.bl_idname, icon='ADD')
+            row.operator(OBJECT_OT_add_object_group.bl_idname,
+                         text="{}...".format(_(OBJECT_OT_add_object_group.bl_label)),
+                         translate=False, icon='ADD')
             row.operator(OBJECT_OT_remove_object_group.bl_idname, icon='REMOVE')
 
             # 显示物体组列表
@@ -73,7 +74,6 @@ class VIEW3D_PT_ObjectGroupsPanel(bpy.types.Panel):
                 row.prop_enum(scene, 'display_mode', 'default')
                 row.prop_enum(scene, 'display_mode', 'transparent')
                 row.prop_enum(scene, 'display_mode', 'focus')
-
             # 显示当前选中的物体组详情
             if 0 <= scene.object_groups_index < len(scene.object_groups):
                 obj_group: ObjectGroup = scene.object_groups[scene.object_groups_index]
@@ -82,7 +82,9 @@ class VIEW3D_PT_ObjectGroupsPanel(bpy.types.Panel):
                 row.label(text=obj_group.name, translate=False)
                 row = row.row(align=True)
                 row.alignment = 'RIGHT'
-                row.operator(operator=OBJECT_OT_rename_group.bl_idname, icon='GREASEPENCIL').group_uuid = obj_group.uuid
+                row.operator(operator=OBJECT_OT_rename_group.bl_idname,
+                             text="{}...".format(_(OBJECT_OT_rename_group.bl_label)),
+                             translate=False, icon='GREASEPENCIL').group_uuid = obj_group.uuid
                 row.operator(operator=OBJECT_OT_update_model_name.bl_idname, icon='FILE_REFRESH', text="")\
                     .group_index = scene.object_groups_index
 
@@ -94,14 +96,14 @@ class VIEW3D_PT_ObjectGroupsPanel(bpy.types.Panel):
             box = layout.box()
             box.label(text="Current Group")
             if context.object.group_uuid:
-                grp, _ = get_group_entry(context.object.group_uuid)
+                grp, ignore = get_group_entry(context.object.group_uuid)
                 box.label(text=grp.name, translate=False)
                 if grp.low_model == context.object:
                     box.label(text="Low-Poly Object")
                 else:
                     box.label(text="High-Poly Object")
             else:
-                box.label(text="Unassigned")
+                box.label(text="Ungrouped")
 
     def draw_header_preset(self, context):
         layout = self.layout
@@ -120,7 +122,7 @@ class VIEW3D_PT_LowModelPanel(bpy.types.Panel):
     """
     bl_parent_id = 'VIEW3D_PT_object_groups_panel'
     bl_label = ""
-    bl_category = "HiLoTool"
+    bl_category = "HiLoTools"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_order = 0
@@ -146,6 +148,8 @@ class VIEW3D_PT_LowModelPanel(bpy.types.Panel):
                 low_col = layout.column(align=True)
                 low_col.label(text="Generate from High-Poly:")
                 low_col.operator(OBJECT_OT_generate_low_poly_object.bl_idname,
+                                 text="{}...".format(_(OBJECT_OT_generate_low_poly_object.bl_label)),
+                                 translate=False,
                                  icon='MESH_UVSPHERE')
             else:
                 row = layout.row(align=True)
@@ -161,6 +165,7 @@ class VIEW3D_PT_LowModelPanel(bpy.types.Panel):
         layout = self.layout
         obj_group: ObjectGroup = scene.object_groups[scene.object_groups_index]
         if not obj_group.low_model:
+            layout.alert = True
             layout.label(text="Unassigned", icon='ERROR')
         else:
             layout.label(text=obj_group.low_model.name, translate=False)
@@ -172,7 +177,7 @@ class VIEW3D_PT_HighListPanel(bpy.types.Panel):
     """
     bl_parent_id = 'VIEW3D_PT_object_groups_panel'
     bl_label = ""
-    bl_category = "HiLoTool"
+    bl_category = "HiLoTools"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_order = 1
@@ -196,7 +201,9 @@ class VIEW3D_PT_HighListPanel(bpy.types.Panel):
         # layout.alignment = 'RIGHT'
         row = layout.row()
         row.alignment = 'RIGHT'
-        row.operator(OBJECT_OT_add_object_to_group.bl_idname, text="Add New High-Poly", icon='ADD')
+        row.operator(OBJECT_OT_add_object_to_group.bl_idname,
+                     text="{}...".format(_("Add New High-Poly")),
+                     translate=False, icon='ADD')
 
     def draw_header(self, context):
         layout = self.layout
@@ -208,6 +215,6 @@ class VIEW3D_PT_HighListPanel(bpy.types.Panel):
         obj_group: ObjectGroup = scene.object_groups[scene.object_groups_index]
         i = len(obj_group.high_models)
         if i:
-            layout.label(text=_("{} High-Polys").format(i))
+            layout.label(text=_("{} High-Poly(s)").format(i))
         else:
             layout.label(text="No High-Poly")

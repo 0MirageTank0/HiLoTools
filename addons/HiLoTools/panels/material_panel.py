@@ -10,11 +10,12 @@ class VIEW3D_PT_MaterialPanel(bpy.types.Panel):
     材质面板,用于添加修改默认材质
     """
     bl_label = "Material"
-    bl_category = "HiLoTool"
+    bl_category = "HiLoTools"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_options = {'DEFAULT_CLOSED'}
     bl_order = 2
+
 
     def draw(self, context: Context):
         layout = self.layout

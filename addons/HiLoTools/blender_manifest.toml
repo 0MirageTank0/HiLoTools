@@ -7,12 +7,12 @@ id = "HiLoTools"
 version = "0.0.1"
 name = "High-Low-Poly Manager"
 tagline = "This is another extension"
-maintainer = "Developer name <email@address.com>"
+maintainer = "MirageTank <email@address.com>"
 # Supported types: "add-on", "theme"
 type = "add-on"
 
 # Optional link to documentation, support, source files, etc
-# website = "https://extensions.blender.org/add-ons/my-example-package/"
+ website = "https://extensions.blender.org/add-ons/my-example-package/"
 
 # Optional list defined by Blender and server, see:
 # https://docs.blender.org/manual/en/dev/advanced/extensions/tags.html

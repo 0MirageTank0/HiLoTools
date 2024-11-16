@@ -35,7 +35,10 @@ class ObjectGroup(bpy.types.PropertyGroup):
     is_visible: BoolProperty(name="Visible", default=True, update=update_visible_object)
     in_background_material: BoolProperty(default=False)
     in_x_ray_material: BoolProperty(default=False)
-    model_name: StringProperty(name="Mesh Name", default="No Name")
+    mesh_name: StringProperty(name="Mesh Name",
+                              description="A prefix that denotes both low-poly and high-poly objects, "
+                                          "which works when renaming",
+                              default="No Name")
     low_model: PointerProperty(type=Object, poll=mesh_object_poll,
                                update=update_low_model)
     completion_status: EnumProperty(name="Progress", items=[

@@ -12,7 +12,7 @@ class VIEW3D_PT_SummaryPanel(bpy.types.Panel):
     汇总面板,对当前工程的总览信息
     """
     bl_label = "Summary"
-    bl_category = "HiLoTool"
+    bl_category = "HiLoTools"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_options = {'DEFAULT_CLOSED'}
@@ -21,6 +21,10 @@ class VIEW3D_PT_SummaryPanel(bpy.types.Panel):
     @classmethod
     def poll(cls, context):
         return True
+
+    def draw_header(self, context):
+        layout = self.layout
+        layout.label(text="", icon='IMGDISPLAY')
 
     def draw(self, context):
         scene = context.scene
@@ -43,20 +47,24 @@ class VIEW3D_PT_SummaryPanel(bpy.types.Panel):
                 has_any_low = True
                 low_area = low_area.box()
                 title_row = low_area.row()
-                title_row.label(text="All Low-Poly", icon='SHADING_WIRE')
+                title_row.prop(scene, 'show_low_model_summary', emboss=False, text="All Low-Poly",
+                               icon='SHADING_WIRE' if scene.show_low_model_summary else 'DOWNARROW_HLT')
                 title_row.operator(operator=OBJECT_OT_select_all_group.bl_idname,
                                    text="Select All").select_range = 'LOW'
-                low_area.separator(type='LINE')
+                if scene.show_low_model_summary:
+                    low_area.separator(type='LINE')
             if not has_any_high and grp.high_models:
                 for h in grp.high_models:
                     if h.high_model:
                         has_any_high = True
                         high_area = high_area.box()
                         title_row = high_area.row()
-                        title_row.label(text="All High-Poly", icon='SHADING_RENDERED')
+                        title_row.prop(scene, 'show_high_model_summary', emboss=False, text="All High-Poly",
+                                       icon='SHADING_RENDERED' if scene.show_high_model_summary else 'DOWNARROW_HLT')
                         title_row.operator(operator=OBJECT_OT_select_all_group.bl_idname,
                                            text="Select All").select_range = 'HIGH'
-                        high_area.separator(type='LINE')
+                        if scene.show_high_model_summary:
+                            high_area.separator(type='LINE')
                         break
         if not has_any_low:
             low_area.label(text="No Low-Poly Exist", icon='SHADING_WIRE')
@@ -68,28 +76,31 @@ class VIEW3D_PT_SummaryPanel(bpy.types.Panel):
             for h in grp.high_models:
                 if h.high_model:
                     has_high_in_group = True
+                    if not scene.show_high_model_summary:
+                        break
                     h_name = h.high_model.name
                     row = high_area.row()
                     row.label(text=h.high_model.name, translate=False)
                     row.operator(OBJECT_OT_select_object.bl_idname,
                                  text="", icon='RESTRICT_SELECT_OFF', translate=False).object_name = h_name
-            if has_any_low:
-                row = low_area.row()
-                if grp.low_model:
-                    l_name = grp.low_model.name
-                    alert = grp.completion_status != 'Finished'
-                    row.alert = alert
-                    row.label(text=l_name, translate=False)
-                    row.alert = False
-                    row.prop(grp, 'completion_status', text="",
-                             icon='ERROR' if grp.completion_status == 'Pending' else
-                             'MOD_REMESH' if grp.completion_status == 'Ongoing' else 'CHECKMARK', emboss=False)
-                    row.operator(OBJECT_OT_select_object.bl_idname,
-                                 text="", icon='RESTRICT_SELECT_OFF', translate=False).object_name = l_name
-                else:
-                    if has_high_in_group:
-                        row.alert = True
-                        row.label(text=_("{} Has HighPoly But No LowPoly").format(grp.name), icon='ERROR')
+            if scene.show_low_model_summary:
+                if has_any_low:
+                    row = low_area.row()
+                    if grp.low_model:
+                        l_name = grp.low_model.name
+                        alert = grp.completion_status != 'Finished'
+                        row.alert = alert
+                        row.label(text=l_name, translate=False)
+                        row.alert = False
+                        row.prop(grp, 'completion_status', text="", emboss=False,
+                                 icon='ERROR' if grp.completion_status == 'Pending' else
+                                 'MOD_REMESH' if grp.completion_status == 'Ongoing' else 'CHECKMARK')
+                        row.operator(OBJECT_OT_select_object.bl_idname,
+                                     text="", icon='RESTRICT_SELECT_OFF', translate=False).object_name = l_name
+                    else:
+                        if has_high_in_group:
+                            row.alert = True
+                            row.label(text=_("{} Has HighPoly But No LowPoly").format(grp.name), icon='ERROR')
 
         layout.separator(type='LINE')
         empty = True
@@ -99,12 +110,14 @@ class VIEW3D_PT_SummaryPanel(bpy.types.Panel):
                     obj_name_set.add(obj.name)
                     empty = False
         if empty:
-            layout.label(text="No Unassigned Objects Exist", icon='SHADING_SOLID')
+            layout.label(text="No Ungrouped Objects Exist", icon='SHADING_SOLID')
         else:
             box = layout.box()
             row = box.row()
-            row.label(text="Unassigned Objects")
+            row.prop(scene, 'show_unassigned_model_summary', emboss=False, text="Ungrouped Objects",
+                     icon='SHADING_SOLID' if scene.show_unassigned_model_summary else 'DOWNARROW_HLT')
             row.operator(operator=OBJECT_OT_select_ungrouped_objects.bl_idname, text="Select All")
-            box.separator(type='LINE')
-            for obj_name in obj_name_set:
-                box.label(text=obj_name, translate=False)
+            if scene.show_unassigned_model_summary:
+                box.separator(type='LINE')
+                for obj_name in obj_name_set:
+                    box.label(text=obj_name, translate=False)

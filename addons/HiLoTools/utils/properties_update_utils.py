@@ -4,7 +4,9 @@
 import bpy
 from bpy.types import Context
 
-no_callback: bool = False
+from addons.HiLoTools.operators.view_ops import mark_background_dirty
+
+ignore_next_callback: bool = False
 
 
 def update_background_color(self, context: Context):
@@ -23,15 +25,15 @@ def update_low_model_color(self, context: Context):
 
 
 def next_select_group_index_no_callback():
-    global no_callback
-    no_callback = True
+    global ignore_next_callback
+    ignore_next_callback = True
 
 
 def update_select_group_index(self, context: Context):
     """处理当前组索引变更"""
-    global no_callback
-    if no_callback:
-        no_callback = False
+    global ignore_next_callback
+    if ignore_next_callback:
+        ignore_next_callback = False
         return
     if context.mode != 'OBJECT':
         return
@@ -49,9 +51,10 @@ def update_select_group_index(self, context: Context):
         bpy.ops.object.local_view_group(group_index=index)
     # x_ray需要在其后进行处理
     if scene.x_ray:
-        # 如果当前处于transparent模式，则不能清除材质。
-        bpy.ops.object.x_ray_group(group_index=index,
-                                   clear_others_material=scene.display_mode != 'transparent')
+        if scene.high_model_material and scene.low_model_material:
+            # 如果当前处于transparent模式，则不能清除材质。
+            bpy.ops.object.x_ray_group(group_index=index,
+                                       clear_others_material=scene.display_mode != 'transparent')
     # 最终处理物体选择逻辑
     bpy.ops.object.select_group(group_index=index, select_low=True, select_high=True)
 
@@ -60,7 +63,8 @@ def update_display_mode(self, context: Context):
     scene = context.scene
 
     if scene.display_mode != 'transparent':
-        bpy.ops.object.solo_group(exit_solo=True, influence_ungrouped=True)
+        if scene.background_material:
+            bpy.ops.object.solo_group(exit_solo=True, influence_ungrouped=True)
     if scene.display_mode != 'focus':
         bpy.ops.object.local_view_group(exit_local_view=True)
 
@@ -73,6 +77,7 @@ prev_active_all = None
 
 def update_transparent_ungrouped(self, context: Context):
     scene = context.scene
+    mark_background_dirty()
     # if not scene.transparent_ungrouped:
     #     bpy.ops.object.solo_group(exit_solo=True, influence_ungrouped=scene.transparent_ungrouped)
     update_select_group_index(self, context)

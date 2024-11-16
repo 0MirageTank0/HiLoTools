@@ -14,7 +14,11 @@ addon_properties = {
         "property_name": StringProperty(name="property_name"),
         "object_groups": CollectionProperty(type=ObjectGroup),
         "object_groups_index": IntProperty(name="Current Selected Group Index", update=update_select_group_index),
-        "selected_high_model": PointerProperty(type=Object, poll=mesh_object_poll),
+        "selected_high_model": PointerProperty(name="High-Poly Object",
+                                               description="Select an object to add as a high-poly to this group.\n"
+                                                           "(Note: Automatically filter non-mesh and objects already "
+                                                           "in other groups)",
+                                               type=Object, poll=mesh_object_poll),
         "display_mode": EnumProperty(name="Display Mode",
                                      items=[
                                          ('default', "Default", "Default option, no special effect"),
@@ -54,12 +58,22 @@ addon_properties = {
                                                default=(0, 0, 0, 1), update=update_low_model_color),
         "sync_select": BoolProperty(name="Sync Selection",
                                     description="Synchronizes the active group to the currently selected",
-                                    default=False)
+                                    default=False),
+        "show_high_model_summary": BoolProperty(name="All High-Poly",
+                                                description="All groups of high-poly.\n"
+                                                            "(click to toggle the folding status)", default=True),
+        "show_low_model_summary": BoolProperty(name="All Low-Poly",
+                                               description="All groups of low-poly.\n"
+                                                           "(click to toggle the folding status)", default=True),
+        "show_unassigned_model_summary": BoolProperty(name="Ungrouped Objects",
+                                                      description="All ungrouped objects.\n"
+                                                                  "(click to toggle the folding status)", default=True),
+        "low_exist_warning_sign": BoolProperty(name="Low-Poly does not exist")
     },
     bpy.types.Object: {
         "group_uuid": StringProperty(name="UUID",
                                      description="Warning: Do not modify this value. This value is used to quickly "
                                                  "determine the object's affiliation without having to iterate "
-                                                 "through the contents of the entire group for matching."),
+                                                 "through the contents of the entire group for matching"),
     }
 }

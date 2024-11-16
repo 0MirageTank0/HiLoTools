@@ -77,7 +77,7 @@ class OBJECT_OT_generate_low_poly_object(Operator):
 
         # 创建一个新的空网格对象
         mesh = bpy.data.meshes.new('MergedMesh')
-        merged_obj = bpy.data.objects.new(obj_group.model_name + scene.low_suffix, mesh)
+        merged_obj = bpy.data.objects.new(obj_group.mesh_name + scene.low_suffix, mesh)
         context.collection.objects.link(merged_obj)
 
         new_group = []
@@ -256,8 +256,8 @@ class OBJECT_OT_update_model_name(Operator):
     """
     bl_idname = 'object.update_group_model_name'
     bl_label = "Update Objects Name"
-    bl_description = ("Rename all objects in the group, the naming convention is: group name + suffix, "
-                      "if there are duplicate objects, the _n distinction will be appended before the suffix")
+    bl_description = ("Rename all objects in the group.\nThe naming convention is: mesh name + suffix "
+                      "\n(If there are duplicate objects, the _n distinction will be appended before the suffix)")
     bl_options = {'REGISTER', 'UNDO'}
 
     group_index: IntProperty(name="Group Index", default=-1, options={'SKIP_SAVE'})
@@ -291,12 +291,12 @@ class OBJECT_OT_update_model_name(Operator):
             if self.update_low_model:
                 process_low_model(group,
                                   lambda obj: update_object_name(obj,
-                                                                 mesh_name=group.model_name,
+                                                                 mesh_name=group.mesh_name,
                                                                  suffix=scene.low_suffix))
             if self.update_high_model:
                 process_high_models(group,
                                     lambda obj: update_object_name(obj,
-                                                                   mesh_name=group.model_name,
+                                                                   mesh_name=group.mesh_name,
                                                                    suffix=scene.high_suffix))
 
         if index == -1:

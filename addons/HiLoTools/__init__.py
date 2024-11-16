@@ -14,15 +14,14 @@ from common.i18n.i18n import load_dictionary
 
 # Add-on info
 bl_info = {
-    "name": "Basic Add-on Sample",
-    "author": "[You name]",
+    "name": "HiLoTools",
+    "author": "Mirage Tank",
     "blender": (3, 5, 0),
     "version": (0, 0, 1),
-    "description": "This is a template for building addons",
-    "warning": "",
-    "doc_url": "[documentation url]",
-    "tracker_url": "[contact email]",
-    "support": "COMMUNITY",
+    "description": "A Blender add-on designed to streamline the management of high-poly and low-poly models",
+    "warning": "Still in development, if you run into any issues, please open an issue on GitHub",
+    "doc_url": "https://github.com/0MirageTank0/HiLoTools",
+    "support": "https://github.com/0MirageTank0/HiLoTools",
     "category": "3D View"
 }
 
@@ -35,12 +34,13 @@ def key_register():
     kc = wm.keyconfigs.addon
     if kc:
         km = wm.keyconfigs.addon.keymaps.new(name='3D View', space_type='VIEW_3D')
-        kmi = km.keymap_items.new(OBJECT_OT_switch_group_selection.bl_idname, type='WHEELUPMOUSE', value='PRESS',
-                                  ctrl=True)
+        kmi = km.keymap_items.new(OBJECT_OT_switch_group_selection.bl_idname,
+                                  type='WHEELUPMOUSE', value='PRESS', ctrl=True)
         kmi.properties.selection = 'HIGH'
         addon_keymaps.append((km, kmi))
-        # 绑定Ctrl + Down为查找最小值
-        kmi = km.keymap_items.new(OBJECT_OT_switch_group_selection.bl_idname, 'WHEELDOWNMOUSE', 'PRESS', ctrl=True)
+        # Ctrl + Down
+        kmi = km.keymap_items.new(OBJECT_OT_switch_group_selection.bl_idname,
+                                  type='WHEELDOWNMOUSE', value='PRESS', ctrl=True)
         kmi.properties.selection = 'LOW'
         addon_keymaps.append((km, kmi))
 
@@ -69,13 +69,13 @@ def register():
     try:
         bpy.app.translations.register(__addon_name__, common_dictionary)
     except ValueError:
-        print("发生了错误..")
+        print("Something went wrong...")
 
     key_register()
     tab_register()
     load_register()
     depsgraph_register()
-    print("{} addon is installed.".format(bl_info["name"]))
+    print("{} addon is installed".format(bl_info["name"]))
 
 
 def unregister():
@@ -87,4 +87,4 @@ def unregister():
     key_unregister()
     load_unregister()
     depsgraph_unregister()
-    print("{} addon is uninstalled.".format(bl_info["name"]))
+    print("{} addon is uninstalled".format(bl_info["name"]))

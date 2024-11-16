@@ -99,6 +99,8 @@ def on_object_select_changed(selected_objects: List[Object]):
     """
     if not selected_objects:
         return
+    if any(obj.type != 'MESH' for obj in selected_objects):
+        return
     selected_group = None
     selected_group_index = -1
     selection_have_low: bool = False

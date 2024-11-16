@@ -5,6 +5,7 @@ from bpy.props import EnumProperty, BoolProperty, StringProperty, IntProperty
 from bpy.types import Operator, Context, Object
 from bpy_extras.view3d_utils import region_2d_to_vector_3d, region_2d_to_origin_3d
 
+from addons.HiLoTools.handler.tab_handler import next_edit_mode_change_no_callback
 from addons.HiLoTools.properties.object_group import ObjectGroup, get_group_entry
 
 
@@ -99,6 +100,7 @@ class OBJECT_OT_switch_group_selection(Operator):
         if context.mode == 'EDIT_MESH':
             edit_switch = True
             bpy.ops.object.mode_set(mode='OBJECT')
+            next_edit_mode_change_no_callback()
 
         if not selected_objects:
             return {'CANCELLED'}
@@ -121,12 +123,15 @@ class OBJECT_OT_switch_group_selection(Operator):
             bpy.ops.object.select_group(group_index=group_index, select_low=select_low,
                                         select_high=select_high, clear_selection=False)
 
+        # 反馈：如果切换后没有任何物体，则进行提示
+        if not context.selected_objects:
+            for obj in selected_objects:
+                obj.select_set(True)
+            info = "High-Poly does not exist" if select_low else "High-Poly does not exist"
+            self.report({'WARNING'}, info)
+
         if edit_switch:
-            if not context.selected_objects:
-                for obj in selected_objects:
-                    obj.select_set(True)
-                info = "High-Poly does not exist" if select_low else "High-Poly does not exist"
-                self.report({'WARNING'}, info)
+            context.view_layer.objects.active = context.selected_objects[0]
             bpy.ops.object.mode_set(mode='EDIT')
 
         return {'FINISHED'}
@@ -142,8 +147,8 @@ class OBJECT_OT_hover_select(Operator):
 
     """
     bl_idname = 'object.hover_select'
-    bl_label = "Hover Select with Alt Key"
-    bl_description = "Select object under mouse while Alt is pressed"
+    bl_label = "Hover Select"
+    bl_description = "Select object under mouse"
     bl_options = {'REGISTER', 'UNDO'}
 
     current_group_uuid: StringProperty()
@@ -184,7 +189,7 @@ class OBJECT_OT_hover_select(Operator):
             context.window_manager.modal_handler_add(self)
             return {'RUNNING_MODAL'}
         else:
-            self.report({'WARNING'}, "Please hold Alt key to activate hover select.")
+            self.report({'WARNING'}, "Please hold Alt key to activate hover select")
             return {'CANCELLED'}
 
     @staticmethod

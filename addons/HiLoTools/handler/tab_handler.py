@@ -5,21 +5,30 @@ from bpy.types import Object
 from addons.HiLoTools.properties.object_group import get_group_entry
 
 handling: bool = False
+ignore_next_edit_mode: bool = False
 
 
-@persistent
+def next_edit_mode_change_no_callback():
+    global ignore_next_edit_mode
+    ignore_next_edit_mode = True
+
+
 def mode_change_callback():
     """
     处理进入编辑模式的逻辑:
     如果是一个组中的高模与低模,则自动的切换到低模的编辑模式.
     因为同时编辑高模低模通常没有意义
     """
-    print("callback")
-    global handling
+    global handling, ignore_next_edit_mode
     if handling:
         return
-    handling = True
+
     if bpy.context.mode == 'EDIT_MESH':
+        if ignore_next_edit_mode:
+            ignore_next_edit_mode = False
+            return
+        handling = True
+
         context = bpy.context
         scene = context.scene
         selected_objects = context.selected_objects
