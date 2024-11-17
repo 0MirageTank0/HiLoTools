@@ -7,7 +7,7 @@ from bpy_extras.view3d_utils import region_2d_to_vector_3d, region_2d_to_origin_
 
 from addons.HiLoTools.handler.tab_handler import next_edit_mode_change_no_callback
 from addons.HiLoTools.properties.object_group import ObjectGroup, get_group_entry
-
+_ = bpy.app.translations.pgettext
 
 class OBJECT_OT_select_group(Operator):
     """
@@ -125,9 +125,12 @@ class OBJECT_OT_switch_group_selection(Operator):
 
         # 反馈：如果切换后没有任何物体，则进行提示
         if not context.selected_objects:
+            last_obj: Object = selected_objects[0]
             for obj in selected_objects:
                 obj.select_set(True)
-            info = "High-Poly does not exist" if select_low else "High-Poly does not exist"
+                last_obj = obj
+            context.view_layer.objects.active = last_obj
+            info = "Low-Poly does not exist or is hidden" if select_low else "High-Poly does not exist or is hidden"
             self.report({'WARNING'}, info)
 
         if edit_switch:
@@ -224,14 +227,15 @@ class OBJECT_OT_select_object(Operator):
         # 获取指定名称的物体
         obj = bpy.data.objects.get(self.object_name)
         if obj:
-            if obj.users_scene and obj.users_scene[0] == context.scene:
+            obj = context.view_layer.objects.get(self.object_name)
+            if obj:
                 bpy.ops.object.select_all(action='DESELECT')
                 obj.select_set(True)
                 context.view_layer.objects.active = obj
             else:
-                self.report({'WARNING'}, "{} object exists, but not in the current scene".format(self.object_name))
+                self.report({'WARNING'}, _("{} object exists, but not in the current scene").format(self.object_name))
         else:
-            self.report({'WARNING'}, "Object {} not found".format(self.object_name))
+            self.report({'WARNING'}, _("Object {} not found").format(self.object_name))
         return {'FINISHED'}
 
 

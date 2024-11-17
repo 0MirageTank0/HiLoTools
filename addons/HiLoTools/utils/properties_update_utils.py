@@ -55,8 +55,9 @@ def update_select_group_index(self, context: Context):
             # 如果当前处于transparent模式，则不能清除材质。
             bpy.ops.object.x_ray_group(group_index=index,
                                        clear_others_material=scene.display_mode != 'transparent')
-    # 最终处理物体选择逻辑
-    bpy.ops.object.select_group(group_index=index, select_low=True, select_high=True)
+    # 最终处理物体选择逻辑（不需要在局部视图选择，因为没有必要）
+    if scene.display_mode != 'focus':
+        bpy.ops.object.select_group(group_index=index, select_low=True, select_high=True)
 
 
 def update_display_mode(self, context: Context):

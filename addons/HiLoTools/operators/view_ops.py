@@ -11,7 +11,6 @@ from addons.HiLoTools.utils.material_utils import clear_object_material, clear_g
 目前实现X-Ray/半透效果的方式基于材质,因此无法区分当前应用的效果究竟是什么,所谓"退出半透/X-Ray"只是统一的删除所有材质.
 这会导致物体丢失原有材质.
 
-计划的优化方向是为组添加额外的参数用于标定状态,记录旧材质.从而实现保留原始材质
 """
 
 is_dirty_background: bool = True
@@ -107,13 +106,14 @@ class OBJECT_OT_solo_group(Operator):
                     clear_group_material(grp)
                 else:
                     apply_material_to_group(grp, scene.background_material)
+                bpy.ops.object.select_all(action='SELECT')
 
         return {'FINISHED'}
 
 
 class OBJECT_OT_local_view_group(Operator):
     """
-    根据组的index,进入对应组的局部视图
+    根据组的index,进入对应组的局部视图。（在局部视图中，默认不会选择任何物体，因为这无必要）
 
     参数:
         group_index: 组的索引,会对其进行检查
@@ -146,6 +146,8 @@ class OBJECT_OT_local_view_group(Operator):
         if self.exit_local_view:
             if in_local_view:
                 bpy.ops.view3d.localview()
+            for entry in scene.object_groups:
+                entry.is_active = True
         else:
             if self.group_index < 0 or self.group_index >= len(scene.object_groups):
                 self.report({'ERROR'}, "Invalid Group Index")
@@ -163,6 +165,7 @@ class OBJECT_OT_local_view_group(Operator):
                 bpy.ops.object.select_group(group_index=self.group_index, select_low=True, select_high=True)
                 bpy.ops.view3d.localview()
             elif self.type == 'TOGGLE':
+                bpy.ops.object.select_all(action='SELECT')
                 grp: ObjectGroup = scene.object_groups[self.group_index]
                 grp.is_active = not grp.is_active
                 if grp.is_active:
@@ -177,7 +180,7 @@ class OBJECT_OT_local_view_group(Operator):
                     self.report({'WARNING'}, "Please select at least one group")
                 else:
                     bpy.ops.view3d.localview()
-
+        bpy.ops.object.select_all(action='DESELECT')
         return {'FINISHED'}
 
 

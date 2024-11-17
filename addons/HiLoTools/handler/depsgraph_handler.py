@@ -47,16 +47,14 @@ def on_object_num_changed(current_objects_set: set):
                     new_object.group_uuid = ""
                     print("clear_uuid")
                 else:  # 存在组
-                    new_object.group_uuid = ""
+                    if grp.low_model == new_object or any(o.high_model == new_object for o in grp.high_models):
+                        # 撤销删除导致的物体增加
+                        print("undo del")
+                        pass
+                    else:
+                        # 用户复制粘贴导致物体增加
+                        new_object.group_uuid = ""
                     return
-                    # 默认直接清除uuid,不加入到组中
-                    # 可能是撤销导致的物体增加 进行双重检查
-                    # if all(hm.high_model != new_object for hm in grp.high_models):
-                    #     h = grp.high_models.add()
-                    #     h.high_model = new_object
-                    #     print("add_to_group")
-                    # else:
-                    #     print("is undo,ignore add")
     # 物体数量变化 删除了对象
     else:
         del_object_set = last_object_set - current_objects_set

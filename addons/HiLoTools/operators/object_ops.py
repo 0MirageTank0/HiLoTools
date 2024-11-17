@@ -119,6 +119,7 @@ class OBJECT_OT_generate_low_poly_object(Operator):
         low_collection.objects.link(merged_obj)
         bpy.ops.object.select_all(action='DESELECT')
         merged_obj.select_set(True)
+        context.view_layer.objects.active = merged_obj
         self.report({'INFO'}, "Objects Merged Successfully")
         return {'FINISHED'}
 
