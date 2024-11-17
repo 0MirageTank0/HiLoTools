@@ -107,6 +107,10 @@ class OBJECT_OT_solo_group(Operator):
                 else:
                     apply_material_to_group(grp, scene.background_material)
                 bpy.ops.object.select_all(action='SELECT')
+                # DESELECT Others
+                for selected_object in context.selected_objects:
+                    if selected_object.type != 'MESH' or not selected_object.group_uuid:
+                        selected_object.select_set(False)
 
         return {'FINISHED'}
 
@@ -166,6 +170,11 @@ class OBJECT_OT_local_view_group(Operator):
                 bpy.ops.view3d.localview()
             elif self.type == 'TOGGLE':
                 bpy.ops.object.select_all(action='SELECT')
+                # DESELECT Others
+                for selected_object in context.selected_objects:
+                    if selected_object.type != 'MESH' or not selected_object.group_uuid:
+                        selected_object.select_set(False)
+
                 grp: ObjectGroup = scene.object_groups[self.group_index]
                 grp.is_active = not grp.is_active
                 if grp.is_active:

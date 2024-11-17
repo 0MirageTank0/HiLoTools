@@ -74,16 +74,19 @@ class VIEW3D_PT_SummaryPanel(bpy.types.Panel):
 
         for grp in scene.object_groups:
             has_high_in_group: bool = False
+            single_group = high_area
+            if scene.show_high_model_summary and len(grp.high_models) > 1:
+                single_group = high_area.box()
             for h in grp.high_models:
                 if h.high_model:
                     has_high_in_group = True
                     if not scene.show_high_model_summary:
                         break
                     h_name = h.high_model.name
-                    row = high_area.row()
-                    row.label(text=h.high_model.name, translate=False)
+                    row = single_group.row()
+                    row.alignment = 'LEFT'
                     row.operator(OBJECT_OT_select_object.bl_idname,
-                                 text="", icon='RESTRICT_SELECT_OFF',
+                                 text=h.high_model.name,
                                  translate=False, emboss=False).object_name = h_name
             if scene.show_low_model_summary:
                 if has_any_low:
@@ -91,21 +94,24 @@ class VIEW3D_PT_SummaryPanel(bpy.types.Panel):
                     if grp.low_model:
                         l_name = grp.low_model.name
                         alert = grp.completion_status != 'Finished'
-                        row.alert = alert
-                        row.label(text=l_name, translate=False)
-                        row.alert = False
-                        row.prop(grp, 'completion_status', text="", emboss=False,
-                                 icon='ERROR' if grp.completion_status == 'Pending' else
-                                 'MOD_REMESH' if grp.completion_status == 'Ongoing' else 'CHECKMARK')
-                        row.operator(OBJECT_OT_select_object.bl_idname,
-                                     text="", icon='RESTRICT_SELECT_OFF',
+                        left_part = row.row()
+                        left_part.alignment = 'LEFT'
+                        left_part.operator(OBJECT_OT_select_object.bl_idname,
+                                     text=l_name,
                                      translate=False, emboss=False).object_name = l_name
+                        # row.label(text=l_name, translate=False)
+                        right_part = row.row()
+                        right_part.alignment = 'RIGHT'
+                        right_part.prop(grp, 'completion_status', text="", emboss=False, icon_only=True,
+                                 icon='BLANK1' if grp.completion_status == 'Pending' else
+                                 'MOD_REMESH' if grp.completion_status == 'Ongoing' else 'CHECKMARK')
+
                     else:
                         if has_high_in_group:
                             row.alert = True
                             row.operator(operator=GROUP_OT_select_group.bl_idname,
                                          text=_("{} Has HighPoly But No LowPoly").format(grp.name),
-                                         icon='ERROR', emboss=False).group_uuid = grp.uuid
+                                         icon='ERROR').group_uuid = grp.uuid
         layout.separator(type='LINE')
         empty = True
         for obj in scene.objects:

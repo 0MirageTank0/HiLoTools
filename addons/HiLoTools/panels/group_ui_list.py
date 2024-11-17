@@ -36,6 +36,15 @@ class OBJECT_UL_object_groups(bpy.types.UIList):
                 warning_sign = row.row()
                 warning_sign.enabled = False
                 warning_sign.prop(scene, 'low_exist_warning_sign', icon='ERROR', text="", emboss=False)
+            else:
+                completion_sign = row.row()
+                completion_sign.enabled = False
+                if obj_group.completion_status == 'Finished':
+                    completion_sign.prop(obj_group, 'completion_status', icon_only=True,
+                                         text="", icon='CHECKMARK', emboss=False)
+                elif obj_group.completion_status == 'Ongoing':
+                    completion_sign.prop(obj_group, 'completion_status', icon_only=True,
+                                         text="", icon='SEQ_CHROMA_SCOPE', emboss=False)
             if scene.display_mode != 'focus':
                 row.prop(obj_group, 'is_visible', text="", emboss=False,
                          icon='HIDE_OFF' if obj_group.is_visible else 'HIDE_ON')
