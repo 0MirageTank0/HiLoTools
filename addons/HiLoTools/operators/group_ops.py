@@ -2,17 +2,18 @@ import uuid
 from typing import List
 
 import bpy
-from bpy.props import StringProperty, BoolProperty, EnumProperty
+from bpy.props import StringProperty, BoolProperty, EnumProperty, IntProperty
 from bpy.types import Operator, Context, Object
 
 from addons.HiLoTools.operators.object_ops import OBJECT_OT_update_model_name
 from addons.HiLoTools.properties.object_group import ObjectGroup, get_group_entry, add_group_entry, del_group_entry
 from addons.HiLoTools.utils.material_utils import clear_object_material
+from addons.HiLoTools.utils.properties_update_utils import next_select_group_index_no_callback
 
 _ = bpy.app.translations.pgettext
 
 
-class OBJECT_OT_add_object_group(Operator):
+class GROUP_OT_add_object_group(Operator):
     """
     创建一个组(操作会弹出用户窗口)
 
@@ -21,7 +22,7 @@ class OBJECT_OT_add_object_group(Operator):
         mesh_name: 网格名称(作为网格重命名时的前缀)
         separate_grouping: 是否独立分组
     """
-    bl_idname = 'object.add_object_group'
+    bl_idname = 'group.add_object_group'
     bl_label = "Add Group"
     bl_description = "Create a new group with the selected objects as the High-Poly of the new group"
 
@@ -130,7 +131,7 @@ class OBJECT_OT_add_object_group(Operator):
             box.label(text="Objects will be ignored if they are already in another group")
 
 
-class OBJECT_OT_remove_object_group(Operator):
+class GROUP_OT_remove_object_group(Operator):
     """
     删除所选的组
 
@@ -138,7 +139,7 @@ class OBJECT_OT_remove_object_group(Operator):
         无
         (所选索引是Scene.object_groups)
     """
-    bl_idname = 'object.remove_object_group'
+    bl_idname = 'group.remove_object_group'
     bl_label = "Delete Group"
     bl_description = "Deletes the selected group (does not delete objects in the group)"
 
@@ -168,7 +169,7 @@ class OBJECT_OT_remove_object_group(Operator):
         return {'FINISHED'}
 
 
-class OBJECT_OT_add_object_to_group(Operator):
+class GROUP_OT_add_object_to_group(Operator):
     """
     将所选物体作为高模添加到组中
 
@@ -176,7 +177,7 @@ class OBJECT_OT_add_object_to_group(Operator):
         update_object_name: 是否在添加后更新高模名称
         (需要Scene.selected_high_model)
     """
-    bl_idname = 'object.add_object_to_group'
+    bl_idname = 'group.add_object_to_group'
     bl_label = "Add Object to Group"
     bl_description = "Add object to the currently selected object group"
     bl_options = {'REGISTER', 'UNDO'}
@@ -223,14 +224,14 @@ class OBJECT_OT_add_object_to_group(Operator):
         layout.prop(scene, 'selected_high_model', text="Select High-Poly Objects", icon='SHADING_RENDERED')
 
 
-class OBJECT_OT_remove_object_from_group(Operator):
+class GROUP_OT_remove_object_from_group(Operator):
     """
     从组中删除物体
 
     参数:
         object_name: 欲删除的物体名
     """
-    bl_idname = 'object.remove_object_from_group'
+    bl_idname = 'group.remove_object_from_group'
     bl_label = "Remove Object from Group"
     bl_description = "Remove selected objects from the currently selected object group"
     bl_options = {'REGISTER', 'UNDO'}
@@ -295,7 +296,7 @@ class OBJECT_OT_remove_object_from_group(Operator):
             return {'CANCELLED'}
 
 
-class OBJECT_OT_rename_group(Operator):
+class GROUP_OT_rename_group(Operator):
     """
     组重命名,附带网格命名功能
 
@@ -307,7 +308,7 @@ class OBJECT_OT_rename_group(Operator):
         update_low_model: 是否更新低模名称
         update_high_model: 是否更新高模名称
     """
-    bl_idname = 'object.rename_group'
+    bl_idname = 'group.rename_group'
     bl_label = "Rename Group"
     bl_description = "Rename the current group and synchronize high-poly and low-poly names"
     bl_options = {'REGISTER', 'UNDO'}
@@ -380,3 +381,36 @@ class OBJECT_OT_rename_group(Operator):
         col.prop(self, 'update_low_model')
         col.prop(self, 'update_high_model')
         OBJECT_OT_update_model_name.draw_suffix_part(box, scene)
+
+
+class GROUP_OT_select_group(Operator):
+    """
+    选择指定组，此方法主要用于选择index，对于选择组内物体的功能，使用OBJECT_OT_select_group
+
+    参数：
+        group_index: 选择组的index（若为空则使用uuid）
+        group_uuid: 选择组的uuid，可为空
+        ignore_callback: 更新index时是否不要调用update回调，默认为False
+    """
+    bl_idname = 'group.select_group'
+    bl_label = "Select Group"
+    bl_description = "Select Group"
+    bl_options = {'REGISTER', 'UNDO'}
+    group_index: IntProperty(default=-1, options={'SKIP_SAVE', 'HIDDEN'})
+    group_uuid: StringProperty(default="", options={'SKIP_SAVE', 'HIDDEN'})
+    ignore_callback: BoolProperty(default=False, options={'SKIP_SAVE', 'HIDDEN'})
+
+    def execute(self, context: Context):
+        scene = context.scene
+        index: int
+        if self.group_index == -1:
+            index = get_group_entry(self.group_uuid)[1]
+        else:
+            index = self.group_index
+        if index < 0:
+            self.report({'WARNING'}, "Group Not Found")
+            return {'CANCELLED'}
+        if self.ignore_callback:
+            next_select_group_index_no_callback()
+        scene.object_groups_index = index
+        return {'FINISHED'}

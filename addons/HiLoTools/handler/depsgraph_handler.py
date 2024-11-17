@@ -136,14 +136,15 @@ def on_object_select_changed(selected_objects: List[Object]):
     remove_text(force=True)
     if mixed_selection:
         return
-    if display_object is not None:
-        show_text_on_object(_("Not in any group"), display_object.name, (.9, 0, 0, 0.2))
-        return
 
     scene = bpy.context.scene
     if scene.sync_select:
         next_select_group_index_no_callback()
         scene.object_groups_index = selected_group_index
+
+    if display_object is not None:
+        show_text_on_object(_("Not in any group"), display_object.name, (.9, 0, 0, 0.2))
+        return
 
     name_str = ",".join([o.name for o in selected_objects])
     if selection_have_low and selection_have_high:

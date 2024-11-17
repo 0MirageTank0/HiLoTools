@@ -1,4 +1,4 @@
-[![HiLoTools Logo](images/title-chinese.png)](https://github.com/0MirageTank0/HiLoTools)
+[![HiLoTools Logo](images/cn/title.png)](https://github.com/0MirageTank0/HiLoTools)
 
 
 HiLoTools 是一款Blender插件，旨在帮助艺术家更高效地管理高低模型。它提供了一系列强大的功能，使得高低模型的管理变得简单。

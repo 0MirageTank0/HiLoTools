@@ -1,8 +1,8 @@
 import bpy
 from bpy.types import Context, UILayout, Object
 
-from addons.HiLoTools.operators.group_ops import OBJECT_OT_add_object_group, OBJECT_OT_remove_object_group, \
-    OBJECT_OT_add_object_to_group, OBJECT_OT_remove_object_from_group, OBJECT_OT_rename_group
+from addons.HiLoTools.operators.group_ops import GROUP_OT_add_object_group, GROUP_OT_remove_object_group, \
+    GROUP_OT_add_object_to_group, GROUP_OT_remove_object_from_group, GROUP_OT_rename_group
 from addons.HiLoTools.operators.material_ops import MATRIAL_OT_create_default_material
 from addons.HiLoTools.operators.object_ops import OBJECT_OT_generate_low_poly_object, OBJECT_OT_update_model_name
 from addons.HiLoTools.operators.selection_ops import OBJECT_OT_select_object
@@ -19,11 +19,11 @@ def draw_in_group_model_button(layout: UILayout, model_object: Object):
         layout.operator(OBJECT_OT_select_object.bl_idname, text=model_object.name,
                         icon='HIDE_OFF',
                         translate=False).object_name = model_object.name
-        layout.operator(OBJECT_OT_remove_object_from_group.bl_idname, text="", icon='X') \
+        layout.operator(GROUP_OT_remove_object_from_group.bl_idname, text="", icon='X') \
             .object_name = model_object.name
     else:
         layout.label(text="Missing Object", icon='ERROR')
-        layout.operator(OBJECT_OT_remove_object_from_group.bl_idname, text="", icon='X') \
+        layout.operator(GROUP_OT_remove_object_from_group.bl_idname, text="", icon='X') \
             .object_name = ""
 
 
@@ -49,10 +49,10 @@ class VIEW3D_PT_ObjectGroupsPanel(bpy.types.Panel):
             row.prop(scene, 'sync_select', icon='UV_SYNC_SELECT', text="")
             col = layout.column(align=True)
             row = col.row(align=True)
-            row.operator(OBJECT_OT_add_object_group.bl_idname,
-                         text="{}...".format(_(OBJECT_OT_add_object_group.bl_label)),
+            row.operator(GROUP_OT_add_object_group.bl_idname,
+                         text="{}...".format(_(GROUP_OT_add_object_group.bl_label)),
                          translate=False, icon='ADD')
-            row.operator(OBJECT_OT_remove_object_group.bl_idname, icon='REMOVE')
+            row.operator(GROUP_OT_remove_object_group.bl_idname, icon='REMOVE')
 
             # 显示物体组列表
             col.template_list('OBJECT_UL_object_groups', '', scene, 'object_groups', scene, 'object_groups_index',
@@ -82,8 +82,8 @@ class VIEW3D_PT_ObjectGroupsPanel(bpy.types.Panel):
                 row.label(text=obj_group.name, translate=False)
                 row = row.row(align=True)
                 row.alignment = 'RIGHT'
-                row.operator(operator=OBJECT_OT_rename_group.bl_idname,
-                             text="{}...".format(_(OBJECT_OT_rename_group.bl_label)),
+                row.operator(operator=GROUP_OT_rename_group.bl_idname,
+                             text="{}...".format(_(GROUP_OT_rename_group.bl_label)),
                              translate=False, icon='GREASEPENCIL').group_uuid = obj_group.uuid
                 row.operator(operator=OBJECT_OT_update_model_name.bl_idname, icon='FILE_REFRESH', text="")\
                     .group_index = scene.object_groups_index
@@ -201,7 +201,7 @@ class VIEW3D_PT_HighListPanel(bpy.types.Panel):
         # layout.alignment = 'RIGHT'
         row = layout.row()
         row.alignment = 'RIGHT'
-        row.operator(OBJECT_OT_add_object_to_group.bl_idname,
+        row.operator(GROUP_OT_add_object_to_group.bl_idname,
                      text="{}...".format(_("Add New High-Poly")),
                      translate=False, icon='ADD')
 

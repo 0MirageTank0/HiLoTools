@@ -2,6 +2,7 @@ import bpy
 
 from addons.HiLoTools.config import __addon_name__
 from addons.HiLoTools.handler.depsgraph_handler import depsgraph_register, depsgraph_unregister
+from addons.HiLoTools.handler.hotkey_handler import key_register, key_unregister
 from addons.HiLoTools.handler.load_handler import load_register, load_unregister
 from addons.HiLoTools.handler.tab_handler import tab_register
 from addons.HiLoTools.i18n.dictionary import dictionary
@@ -18,43 +19,12 @@ bl_info = {
     "author": "Mirage Tank",
     "blender": (3, 5, 0),
     "version": (0, 0, 1),
-    "description": "A Blender add-on designed to streamline the management of high-poly and low-poly models",
+    "description": "Managing high-poly and low-poly models efficiently.",
     "warning": "Still in development, if you run into any issues, please open an issue on GitHub",
     "doc_url": "https://github.com/0MirageTank0/HiLoTools",
     "support": "https://github.com/0MirageTank0/HiLoTools",
     "category": "3D View"
 }
-
-addon_keymaps = []
-
-
-def key_register():
-    # Add the hotkey
-    wm = bpy.context.window_manager
-    kc = wm.keyconfigs.addon
-    if kc:
-        km = wm.keyconfigs.addon.keymaps.new(name='3D View', space_type='VIEW_3D')
-        kmi = km.keymap_items.new(OBJECT_OT_switch_group_selection.bl_idname,
-                                  type='WHEELUPMOUSE', value='PRESS', ctrl=True)
-        kmi.properties.selection = 'HIGH'
-        addon_keymaps.append((km, kmi))
-        # Ctrl + Down
-        kmi = km.keymap_items.new(OBJECT_OT_switch_group_selection.bl_idname,
-                                  type='WHEELDOWNMOUSE', value='PRESS', ctrl=True)
-        kmi.properties.selection = 'LOW'
-        addon_keymaps.append((km, kmi))
-
-        km = wm.keyconfigs.addon.keymaps.new(name='Object Mode', space_type='EMPTY')
-        # 添加Alt键绑定
-        kmi = km.keymap_items.new(OBJECT_OT_hover_select.bl_idname, 'LEFT_ALT', 'PRESS', ctrl=True)
-        addon_keymaps.append((km, kmi))
-
-
-def key_unregister():
-    # Remove the hotkey
-    for km, kmi in addon_keymaps:
-        km.keymap_items.remove(kmi)
-    addon_keymaps.clear()
 
 
 def register():

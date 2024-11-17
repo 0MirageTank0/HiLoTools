@@ -1,8 +1,9 @@
 import bpy
 
+from addons.HiLoTools.operators.group_ops import GROUP_OT_select_group
 from addons.HiLoTools.operators.object_ops import OBJECT_OT_update_model_name, OBJECT_OT_move_to_collection
 from addons.HiLoTools.operators.selection_ops import OBJECT_OT_select_all_group, OBJECT_OT_select_ungrouped_objects, \
-    OBJECT_OT_select_object
+    OBJECT_OT_select_object, OBJECT_OT_select_group
 
 _ = bpy.app.translations.pgettext
 
@@ -82,7 +83,8 @@ class VIEW3D_PT_SummaryPanel(bpy.types.Panel):
                     row = high_area.row()
                     row.label(text=h.high_model.name, translate=False)
                     row.operator(OBJECT_OT_select_object.bl_idname,
-                                 text="", icon='RESTRICT_SELECT_OFF', translate=False).object_name = h_name
+                                 text="", icon='RESTRICT_SELECT_OFF',
+                                 translate=False, emboss=False).object_name = h_name
             if scene.show_low_model_summary:
                 if has_any_low:
                     row = low_area.row()
@@ -96,12 +98,14 @@ class VIEW3D_PT_SummaryPanel(bpy.types.Panel):
                                  icon='ERROR' if grp.completion_status == 'Pending' else
                                  'MOD_REMESH' if grp.completion_status == 'Ongoing' else 'CHECKMARK')
                         row.operator(OBJECT_OT_select_object.bl_idname,
-                                     text="", icon='RESTRICT_SELECT_OFF', translate=False).object_name = l_name
+                                     text="", icon='RESTRICT_SELECT_OFF',
+                                     translate=False, emboss=False).object_name = l_name
                     else:
                         if has_high_in_group:
                             row.alert = True
-                            row.label(text=_("{} Has HighPoly But No LowPoly").format(grp.name), icon='ERROR')
-
+                            row.operator(operator=GROUP_OT_select_group.bl_idname,
+                                         text=_("{} Has HighPoly But No LowPoly").format(grp.name),
+                                         icon='ERROR', emboss=False).group_uuid = grp.uuid
         layout.separator(type='LINE')
         empty = True
         for obj in scene.objects:
@@ -120,4 +124,8 @@ class VIEW3D_PT_SummaryPanel(bpy.types.Panel):
             if scene.show_unassigned_model_summary:
                 box.separator(type='LINE')
                 for obj_name in obj_name_set:
-                    box.label(text=obj_name, translate=False)
+                    row = box.row()
+                    row.label(text=obj_name, translate=False)
+                    row.operator(OBJECT_OT_select_object.bl_idname,
+                                 text="", icon='RESTRICT_SELECT_OFF',
+                                 translate=False, emboss=False).object_name = obj_name

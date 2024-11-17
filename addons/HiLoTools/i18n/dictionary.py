@@ -113,6 +113,9 @@ dictionary = {
         ("*", "A prefix that denotes both low-poly and high-poly objects, which works when renaming"):
             "在重命名时作为高模和低模对象的前缀",
         ("*", "Suffix"): "后缀",
+        ("Operator", "Select Group"): "选择组",
+        ("*", "Select Group"): "选择组",
+        ("*", "Group Not Found"): "组未找到",
         ("*", ""): "",
         # material_ops
         ("Operator", "Restore Default Material"): "恢复默认材质",
@@ -124,6 +127,7 @@ dictionary = {
         ("*", ""): "",
         # object_ops
         ("Operator", "Generate Low-Poly Object"): "生成低模物体",
+        ("*", "Generate Low-Poly Object"): "生成低模物体",
         ("*", "Generate Low-Poly Object from High-Poly"): "根据高模组成低模物体",
         ("*", "Exclusion Method"): "排除方式",
         ("*", "Exclude Modifiers in a Certain Way"): "按某种方式排除修改器",
@@ -182,6 +186,7 @@ dictionary = {
         ("*", "Select object under mouse"): "选择鼠标下的物体",
         ("*", "Please hold Alt key to activate hover select"): "请按住Alt键以激活悬停选择",
         ("Operator", "Select Object"): "选择物体",
+        ("*", "Select Object"): "选择物体",
         ("*", "Object Name"): "物体名称",
         ("*", "{} object exists, but not in the current scene"): "{} 物体存在，但不在当前场景中",
         ("*", "Object {} not found"): "未找到物体 {}",

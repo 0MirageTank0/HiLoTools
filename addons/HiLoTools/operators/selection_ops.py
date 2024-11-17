@@ -143,7 +143,7 @@ class OBJECT_OT_hover_select(Operator):
 
     参数:
         无
-        (current_group_index用于内部记录)
+        (_current_group_index用于内部记录)
 
     """
     bl_idname = 'object.hover_select'
@@ -151,7 +151,7 @@ class OBJECT_OT_hover_select(Operator):
     bl_description = "Select object under mouse"
     bl_options = {'REGISTER', 'UNDO'}
 
-    current_group_uuid: StringProperty()
+    current_group_uuid: StringProperty(options={'HIDDEN'})
 
     def modal(self, context, event):
         scene = context.scene
@@ -183,14 +183,8 @@ class OBJECT_OT_hover_select(Operator):
         return {'RUNNING_MODAL'}
 
     def invoke(self, context, event):
-        # 检查 Alt 键是否按下
-        if event.alt:
-            # 设置操作的 'modal' 模式
-            context.window_manager.modal_handler_add(self)
-            return {'RUNNING_MODAL'}
-        else:
-            self.report({'WARNING'}, "Please hold Alt key to activate hover select")
-            return {'CANCELLED'}
+        context.window_manager.modal_handler_add(self)
+        return {'RUNNING_MODAL'}
 
     @staticmethod
     def get_object_under_mouse(context: Context, region, region_3d, coord) -> Optional[Object]:
