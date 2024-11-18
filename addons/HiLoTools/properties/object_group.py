@@ -47,6 +47,10 @@ class ObjectGroup(bpy.types.PropertyGroup):
         ('Finished', "Finished", "The low-poly has been made"),
     ])
     high_models: CollectionProperty(type=ObjectSubItem)  # 存储多个高模物体
+    remark: StringProperty(name="Remark",
+                           description="Some information to mark this group "
+                                       "\n(this value is used by default to sort the group, "
+                                       "which can be changed from the lower part of the list)")
 
 
 group_cache: dict = {}

@@ -87,6 +87,9 @@ class VIEW3D_PT_ObjectGroupsPanel(bpy.types.Panel):
                              translate=False, icon='GREASEPENCIL').group_uuid = obj_group.uuid
                 row.operator(operator=OBJECT_OT_update_model_name.bl_idname, icon='FILE_REFRESH', text="")\
                     .group_index = scene.object_groups_index
+                col = layout.column()
+                row = col.row()
+                row.prop(obj_group, 'remark', placeholder="Nothing")
 
         elif context.mode == 'EDIT_MESH':
             # 显示物体组列表

@@ -261,6 +261,11 @@ dictionary = {
         ("*", "The production of low-poly has not yet begun"): "低模还未开始制作",
         ("*", "Low poly is in the process of being made"): "低模正在制作过程中",
         ("*", "The low-poly has been made"): "低模已完成制作",
+        ("*", "Remark"): "备注",
+        ("*", "Some information to mark this group "
+              "\n(this value is used by default to sort the group, "
+              "which can be changed from the lower part of the list)"):
+            "用于标记此组的一些信息\n（默认使用此值来对组进行排序，可从列表下部更改）",
         ("*", ""): "",
         # depsgraph_handler
         ("*", "Not in any group"): "不属于任何组",

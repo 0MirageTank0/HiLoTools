@@ -27,7 +27,15 @@ class OBJECT_UL_object_groups(bpy.types.UIList):
                                     icon='VIS_SEL_11' if obj_group.is_active else 'VIS_SEL_00', emboss=False)
                 prop.type = 'TOGGLE'
                 prop.group_index = index
-            row.prop(obj_group, 'name', text="", emboss=False)
+            title_area = row.row()
+            title = title_area.row()
+            title.alignment = 'LEFT'
+            title.prop(obj_group, 'name', text="", emboss=False)
+            remark = title_area.row()
+            remark.alignment = 'RIGHT'
+            remark.enabled = False
+            remark.label(text=obj_group.remark, translate=False)
+
             if obj_group.name != obj_group.mesh_name:
                 mesh_name = row.row()
                 mesh_name.enabled = False
@@ -53,3 +61,24 @@ class OBJECT_UL_object_groups(bpy.types.UIList):
             row = layout.row()
             row.prop(obj_group, 'is_active', text="", icon='RECORD_ON' if obj_group.is_active else 'RECORD_OFF',
                      emboss=False)
+
+
+
+
+
+    def filter_items(self, context, data, propname):
+        sorted_array = []
+        items = getattr(data, propname)
+        # Filter
+        if self.filter_name:
+            filtered = bpy.types.UI_UL_list.filter_items_by_name(
+                self.filter_name,
+                self.bitflag_filter_item,
+                items,
+                propname="name",
+                reverse=False)
+        else:
+            filtered = [self.bitflag_filter_item] * len(items)
+        if not self.use_filter_sort_alpha:
+            sorted_array = bpy.types.UI_UL_list.sort_items_by_name(items, propname="remark")
+        return filtered, sorted_array
