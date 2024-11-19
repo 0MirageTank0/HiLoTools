@@ -71,7 +71,11 @@ def draw_textbox(fontid, text, second_text, center, margin, bg_color):
         blf.draw(fontid, second_text)
 
 
-def draw_callback_px(self, context):
+def clamp(value, min_value, max_value):
+    return  max(min_value, min(value, max_value))
+
+
+def draw_callback_px(self, context: Context):
     """绘制文字提示的回调函数"""
     if show_text:
         global credible_location, text_location_in_3d, display_text, display_second_text
@@ -87,6 +91,10 @@ def draw_callback_px(self, context):
         blf.size(fontId, 28)
         blf.shadow_offset(fontId, 1, -1)
         blf.shadow(fontId, 5, .1, .1, .1, 1)
+
+        txt_w, txt_h = blf.dimensions(fontId, display_text)
+        true_text_position.x = clamp(true_text_position.x, txt_w / 2, context.area.width - txt_w / 2)
+        true_text_position.y = clamp(true_text_position.y, txt_h * 2, context.area.height - txt_h * 2)
 
         draw_textbox(
             fontid=fontId,
