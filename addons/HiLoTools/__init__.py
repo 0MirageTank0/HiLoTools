@@ -18,7 +18,7 @@ bl_info = {
     "name": "HiLoTools",
     "author": "Mirage Tank",
     "blender": (3, 5, 0),
-    "version": (0, 0, 1),
+    "version": (0, 0, 2),
     "description": "Managing high-poly and low-poly models efficiently.",
     "warning": "Still in development, if you run into any issues, please open an issue on GitHub",
     "doc_url": "https://github.com/0MirageTank0/HiLoTools",

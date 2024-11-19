@@ -48,9 +48,13 @@ class OBJECT_OT_select_group(Operator):
             if self.clear_selection:
                 bpy.ops.object.select_all(action='DESELECT')
             if self.select_high:
+                last_obj = None
                 for item in grp.high_models:
                     if item.high_model:
                         item.high_model.select_set(not self.deselect)
+                        last_obj = item.high_model
+                if not self.select_low and last_obj is not None:
+                    context.view_layer.objects.active = last_obj
             if self.select_low and grp.low_model:
                 grp.low_model.select_set(not self.deselect)
                 context.view_layer.objects.active = grp.low_model
