@@ -54,14 +54,13 @@ def on_object_num_changed(current_objects_set: set):
                     else:
                         # 用户复制粘贴导致物体增加
                         new_object.group_uuid = ""
-                    return
     # 物体数量变化 删除了对象
     else:
         del_object_set = last_object_set - current_objects_set
         for del_object in del_object_set:
             if is_object_valid(del_object):
                 if del_object.type != "MESH":
-                    return
+                    continue
                 uuid = del_object.group_uuid
                 if uuid:
                     grp, _ = get_group_entry(uuid)
@@ -71,15 +70,12 @@ def on_object_num_changed(current_objects_set: set):
                             if grp.low_model == del_object and not grp.low_model.users_scene:
                                 bpy.data.objects.remove(grp.low_model)
                                 grp.low_model = None
-                                print("remove_low_from_group")
-                                return
                         # 否则删除高模
                         for (index, item) in enumerate(grp.high_models):
                             if item.high_model == del_object:
                                 grp.high_models.remove(index)
                                 bpy.data.objects.remove(del_object)
                                 print("remove_high_from_group")
-                                break
                 else:
                     if not del_object.users_scene:
                         bpy.data.objects.remove(del_object)
