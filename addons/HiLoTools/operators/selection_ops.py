@@ -7,7 +7,9 @@ from bpy_extras.view3d_utils import region_2d_to_vector_3d, region_2d_to_origin_
 
 from addons.HiLoTools.handler.tab_handler import next_edit_mode_change_no_callback
 from addons.HiLoTools.properties.object_group import ObjectGroup, get_group_entry
+
 _ = bpy.app.translations.pgettext
+
 
 class OBJECT_OT_select_group(Operator):
     """
@@ -15,21 +17,21 @@ class OBJECT_OT_select_group(Operator):
 
     参数:
         group_index: 组索引,会对此进行检查,不合法则跳过
-        select_low: 是否选择组内的低模
-        select_high: 是否选择组内的高模
-        deselect: 是否反转选择(即从当前所选范围内去除高模或者去除低模),默认为假
-        clear_selection: 是否在执行之前清除视图中的选择,默认为真
+        select_low: 是否选择组内的低模,默认为True
+        select_high: 是否选择组内的高模,默认为True
+        deselect: 是否反转选择(即从当前所选范围内去除高模或者去除低模),默认为False
+        clear_selection: 是否在执行之前清除视图中的选择,默认为True
     """
     bl_idname = 'object.select_group'
     bl_label = "Select Group"
     bl_description = "Select Group"
     bl_options = {'REGISTER', 'UNDO'}
 
-    group_index: IntProperty()
-    select_low: BoolProperty()
-    select_high: BoolProperty()
-    deselect: BoolProperty(default=False)
-    clear_selection: BoolProperty(default=True)
+    group_index: IntProperty(options={'SKIP_SAVE', 'HIDDEN'})
+    select_low: BoolProperty(name="Select Low-Poly", default=True)
+    select_high: BoolProperty(name="Select High-Poly", default=True)
+    deselect: BoolProperty(name="Exclude Selection", default=False)
+    clear_selection: BoolProperty(name="Clear Selection", default=True)
 
     @classmethod
     def poll(cls, context):
@@ -53,13 +55,57 @@ class OBJECT_OT_select_group(Operator):
                     if item.high_model:
                         item.high_model.select_set(not self.deselect)
                         last_obj = item.high_model
-                if not self.select_low and last_obj is not None:
+                if (not (self.select_low and grp.low_model)
+                        and last_obj is not None):
                     context.view_layer.objects.active = last_obj
             if self.select_low and grp.low_model:
                 grp.low_model.select_set(not self.deselect)
                 context.view_layer.objects.active = grp.low_model
         else:
             return {'CANCELLED'}
+        return {'FINISHED'}
+
+
+class OBJECT_OT_select_remark_group(Operator):
+    """
+    根据备注,在画面中选择组的成员
+
+    参数:
+        remark: 目标备注
+        selection: 选择范围
+        -    ALL: 选择整个组
+        -    LOW: 只选择组的低模
+        -    HIGH: 只选择组的高模
+        clear_selection: 是否在执行之前清除视图中的选择,默认为True
+    """
+    bl_idname = 'object.select_remark_group'
+    bl_label = "Select Group by Remark"
+    bl_description = "Select Group by Remark"
+    bl_options = {'REGISTER', 'UNDO'}
+    remark: StringProperty(name="Remark", description="Remark", options={'SKIP_SAVE'})
+    selection: EnumProperty(name="Selection Range", description="Selection Mode",
+                            items=[('ALL', "All", "Select All"),
+                                   ('HIGH', "High-Poly", "Select Only High-Poly"),
+                                   ('LOW', "Low-Poly", "Select Only Low-Poly")],
+                            default='ALL')
+
+    clear_selection: BoolProperty(name="Clear Selection", default=True)
+
+    def execute(self, context: Context):
+        scene = context.scene
+        if self.clear_selection:
+            bpy.ops.object.select_all(action='DESELECT')
+        select_low = self.selection == 'LOW'
+        select_high = self.selection == 'HIGH'
+        if self.selection == 'ALL':
+            select_high = select_low = True
+        for group in scene.object_groups:
+            if group.remark == self.remark:
+                index = get_group_entry(group.uuid)[1]
+                bpy.ops.object.select_group(group_index=index,
+                                            select_low=select_low,
+                                            select_high=select_high,
+                                            clear_selection=False)
         return {'FINISHED'}
 
 

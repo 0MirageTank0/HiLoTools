@@ -36,14 +36,18 @@ dictionary = {
         # summary_panel
         ("*", "Summary"): "汇总",
         ("*", "HiLoTools"): "HiLoTools",
+        ("*", "All Remarked Group"): "全部备注组",
         ("*", "All Low-Poly"): "全部低模",
         ("*", "Select All"): "选择全部",
         ("*", "All High-Poly"): "全部高模",
+        ("*", "No Remarked Group"): "不存在备注组",
         ("*", "No Low-Poly Exist"): "不存在低模物体",
         ("*", "No High-Poly Exist"): "不存在高模物体",
         ("*", "{} Has HighPoly But No LowPoly"): "{} 存在高模但无低模",
         ("*", "No Ungrouped Objects Exist"): "不存在未分组的物体",
         ("*", "Ungrouped Objects"): "未分组的物体",
+
+        ("*", ""): "",
         ("*", ""): "",
         # material_panel
         ("*", "Material"): "材质",
@@ -168,6 +172,10 @@ dictionary = {
         ("*", ""): "",
         # selection_ops
         ("Operator", "Select Group"): "选择组",
+        ("*", "Select Low-Poly"): "选择",
+        ("*", "Select High-Poly"): "选择",
+        ("*", "Exclude Selection"): "清除先前选择",
+        ("*", "Clear Selection"): "选择",
         ("*", "Can only be used in Object Mode"): "只能在物体模式中使用",
         ("Operator", "Switch within Group"): "组内切换",
         ("*", "Switch objects within group based on current active item"): "根据当前活动项，切换组内物体",
@@ -199,6 +207,10 @@ dictionary = {
         ("*", "Low-Poly does not exist or is hidden"): "低模不存在或被隐藏",
         ("*", "Warning"): "警告",
         ("*", "The object cannot be selected because it is not in the current scene"): "无法选择物体,因为它不在当前场景中",
+        ("Operator", "Select Group by Remark"): "根据备注选择组的物体",
+        ("*", "Select Group by Remark"): "根据备注选择组的物体",
+        ("*", ""): "",
+        ("*", ""): "",
         ("*", ""): "",
         # view_ops
         ("*", "Solo Group"): "Solo Group",
@@ -242,6 +254,7 @@ dictionary = {
             "警告：请勿修改此值。此值用于快速确定物体所属，而无需遍历整个组的内容进行匹对",
         ("*", "Sync Selection"): "同步选择",
         ("*", "Synchronizes the active group to the currently selected"): "将活动组与当前所选同步",
+        ("*", "All groups that contain remark.\n(click to toggle the folding status)"): "列举所有包含备注的组\n（点击可切换折叠状态）",
         ("*", "All groups of high-poly.\n(click to toggle the folding status)"): "列举所有组别的高模\n（点击可切换折叠状态）",
         ("*", "All groups of low-poly.\n(click to toggle the folding status)"): "列举所有组别的低模\n（点击可切换折叠状态）",
         ("*", "All ungrouped objects.\n(click to toggle the folding status)"): "列举未打组的物体\n（点击可切换折叠状态）",
