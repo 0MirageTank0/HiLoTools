@@ -22,7 +22,6 @@ def mode_change_callback():
     global handling, ignore_next_edit_mode
     if handling:
         return
-
     if bpy.context.mode == 'EDIT_MESH':
         if ignore_next_edit_mode:
             ignore_next_edit_mode = False

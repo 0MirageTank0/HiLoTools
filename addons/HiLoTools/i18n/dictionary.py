@@ -226,6 +226,7 @@ dictionary = {
         # properties
         ("*", "Current Selected Group Index"): "当前选取组索引",
         ("*", "Show High-Poly List"): "显示高模列表",
+        ("*", "Print Object Info"): "打印所选物体信息",
         ("*", "Display Mode"): "画面显示模式",
         ("*", "Default"): "默认",
         ("*", "Default option, no special effect"): "默认选项，无特殊效果",

@@ -45,8 +45,12 @@ class VIEW3D_PT_ObjectGroupsPanel(bpy.types.Panel):
         if context.mode == 'OBJECT':
             # 添加和删除物体组的按钮
             row = layout.row()
-            row.alignment = 'RIGHT'
-            row.prop(scene, 'sync_select', icon='UV_SYNC_SELECT', text="")
+            left = row.row()
+            left.alignment = 'LEFT'
+            left.prop(scene, 'print_selected_object')
+            right = row.row()
+            right.alignment = 'RIGHT'
+            right.prop(scene, 'sync_select', icon='UV_SYNC_SELECT', text="")
             col = layout.column(align=True)
             row = col.row(align=True)
             row.operator(GROUP_OT_add_object_group.bl_idname,

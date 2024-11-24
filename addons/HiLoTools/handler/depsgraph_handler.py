@@ -175,7 +175,8 @@ def depsgraph_handler(scene: Scene):
             last_object_num = current_object_num
             last_object_set = current_object_set
         else:
-            on_object_select_changed(selected_objects)
+            if scene.print_selected_object:
+                on_object_select_changed(selected_objects)
         last_selected_objects = current_selected_objects
     elif current_selected_objects is None:
         operators = bpy.context.window_manager.operators

@@ -146,6 +146,8 @@ class OBJECT_OT_switch_group_selection(Operator):
         selected_objects: List[Object] = \
             [obj for obj in context.selected_objects if obj.type == 'MESH' and obj.group_uuid]
         edit_switch: bool = False
+        if not selected_objects:
+            return {'CANCELLED'}
 
         if context.mode == 'EDIT_MESH':
             edit_switch = True

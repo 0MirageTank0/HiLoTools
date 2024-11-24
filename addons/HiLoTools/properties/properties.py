@@ -13,6 +13,7 @@ addon_properties = {
     bpy.types.Scene: {
         "property_name": StringProperty(name="property_name"),
         "object_groups": CollectionProperty(type=ObjectGroup),
+        "print_selected_object": BoolProperty(name="Print Object Info", default=True),
         "object_groups_index": IntProperty(name="Current Selected Group Index", update=update_select_group_index),
         "selected_high_model": PointerProperty(name="High-Poly Object",
                                                description="Select an object to add as a high-poly to this group.\n"
