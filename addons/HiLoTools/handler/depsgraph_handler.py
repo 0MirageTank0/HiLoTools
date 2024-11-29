@@ -135,7 +135,8 @@ def on_object_select_changed(selected_objects: List[Object]):
     if scene.sync_select:
         next_select_group_index_no_callback()
         scene.object_groups_index = selected_group_index
-
+    if scene.print_selected_object:
+        return
     if display_object is not None:
         show_text_on_object(_("Not in any group"), display_object.name, (.9, 0, 0, 0.2))
         return
@@ -175,7 +176,7 @@ def depsgraph_handler(scene: Scene):
             last_object_num = current_object_num
             last_object_set = current_object_set
         else:
-            if scene.print_selected_object:
+            if scene.print_selected_object or scene.sync_select:
                 on_object_select_changed(selected_objects)
         last_selected_objects = current_selected_objects
     elif current_selected_objects is None:
